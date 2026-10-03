@@ -27,6 +27,11 @@ const NAMES = [
   'exportRootFormat',
   'exportAll',
   'importFolder',
+  'listVersions',
+  'getVersion',
+  'backup',
+  'restore',
+  'exportPng',
   'copy'
 ];
 

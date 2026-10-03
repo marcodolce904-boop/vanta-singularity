@@ -59,6 +59,12 @@ Sicurezza dei dati: elimina = sposta in `_cestino` (mai cancellazione definitiva
 - **Ctrl/Cmd+K** (o il pulsante **Cerca** in alto): cerca in Strutture, Componenti, Animazioni e Interazioni insieme e apre l'elemento.
 - **☆ Preferito** nell'editor (si salva con **Salva**): i preferiti vanno in cima all'elenco, con la stella; la casella **Solo preferiti** filtra l'elenco.
 
+## Backup, versioni e PNG
+
+- **Versioni…** (nell'editor): a ogni salvataggio che cambia qualcosa, la versione precedente viene conservata (le ultime 20 per elemento, nella sottocartella `_versioni` dell'elemento). Scegline una: va nell'editor, ma resta non salvata finché non premi **Salva**.
+- **Impostazioni → Crea backup ZIP…**: un unico `cat-alog-backup-AAAA-MM-GG-HHMM.zip` con strutture, componenti, animazioni, interazioni, classi e root (non il cestino). **Ripristina da backup…** rimette tutto e sposta quello che c'era prima in `_cestino/prima-del-ripristino-…`.
+- **Esporta PNG** (nell'editor): tre immagini a 375, 768 e 1280 px, a pagina intera, con root e classi applicati. Usa una finestra nascosta di Electron: la parte di scatto non è provata in questo ambiente (la logica dei file sì). Se l'immagine esce vuota, dimmelo.
+
 ## Controllo qualità e anteprima
 
 - Nell'editor, il riquadro **Controllo qualità** si aggiorna mentre scrivi: ● a posto, ▲ da vedere, ■ errore. Controlla un solo h1, `alt` sulle immagini, nome di pulsanti e link, etichette dei campi, id unici, focus visibile, contrasto AA (solo coppie colore/sfondo scritte come `#rrggbb` nella stessa regola), `prefers-reduced-motion` e animazioni di proprietà diverse da `transform`/`opacity`. Sotto ci sono tre caselle da spuntare a mano (non vengono ricordate).

@@ -27,7 +27,9 @@ function make(over) {
         return null;
       },
       copy: (t) => log.copied.push(t),
-      openPath: async (p) => log.opened.push(p)
+      openPath: async (p) => log.opened.push(p),
+      chooseOpenFile: async () => null,
+      renderPng: async (doc, widths) => widths.map((width) => ({ width, png: Buffer.from('PNG' + width) }))
     },
     over || {}
   );
@@ -179,4 +181,23 @@ test('classi, root e preset passano dall\'API come dagli archivi', async () => {
   assert.equal((await api.getPreset(p.id)).gruppi[0].variabili[0].valore, '#010203');
   await api.deletePreset(p.id);
   assert.deepEqual(await api.listPresets(), []);
+});
+
+test('backup, ripristino ed esporta PNG usano le finestre di scelta file', async () => {
+  const out = path.join(tmp(), 'uscita');
+  fs.mkdirSync(out, { recursive: true });
+  const { api, log } = make({
+    chooseSaveFile: async (nome) => path.join(out, nome),
+    chooseFolder: async () => out
+  });
+  const b = await api.backup();
+  assert.equal(b.annullato, false);
+  assert.match(path.basename(b.percorso), /^cat-alog-backup-\d{4}-\d{2}-\d{2}-\d{4}\.zip$/);
+  assert.ok(fs.statSync(b.percorso).size > 1000);
+
+  assert.deepEqual(await api.restore(), { annullato: true });
+  const png = await api.exportPng('strutture', { nome: 'Mia Pagina', html: '<p>x</p>', css: 'p{}' });
+  assert.deepEqual(png.files.map((f) => path.basename(f)), ['mia-pagina-375.png', 'mia-pagina-768.png', 'mia-pagina-1280.png']);
+  assert.equal(fs.readFileSync(png.files[0], 'utf8'), 'PNG375');
+  assert.ok(log);
 });

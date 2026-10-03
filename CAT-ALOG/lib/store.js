@@ -5,6 +5,7 @@ const path = require('path');
 const S = require('./shared');
 const seed = require('./seed');
 const libreria = require('./libreria');
+const zip = require('./zip');
 
 const KINDS = {
   strutture: { js: false },
@@ -199,6 +200,7 @@ function createStore(dataDir) {
       if (d.preferito === undefined && old) pref = old.preferito === true;
     }
     const dir = p(kind, theId);
+    if (id != null) snapshotVersion(kind, theId, d);
     fs.mkdirSync(dir, { recursive: true });
     writeFile(path.join(dir, 'markup.html'), S.str(d.html));
     writeFile(path.join(dir, 'style.css'), S.str(d.css));
@@ -452,6 +454,102 @@ function createStore(dataDir) {
     };
   }
 
+  /* ---------- cronologia delle versioni (ultime 20 per elemento) ---------- */
+
+  const MAX_VERSIONS = 20;
+  const VER_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}(?:-[0-9]+)?$/;
+
+  function snapshotVersion(kind, id, next) {
+    let old;
+    try {
+      old = get(kind, id);
+    } catch (e) {
+      return;
+    }
+    const n = next || {};
+    const same =
+      old.html === S.str(n.html) && old.css === S.str(n.css) && (!KINDS[kind].js || old.js === S.str(n.js)) &&
+      old.nome === (S.str(n.nome).trim() || 'Senza nome');
+    if (same) return;
+    const dir = p(kind, id, '_versioni');
+    fs.mkdirSync(dir, { recursive: true });
+    let name = stamp();
+    let k = 1;
+    while (fs.existsSync(path.join(dir, name + '.json'))) { name = stamp() + '-' + k; k += 1; }
+    writeFile(path.join(dir, name + '.json'), JSON.stringify({
+      nome: old.nome, descrizione: old.descrizione, tag: old.tag, html: old.html, css: old.css, js: old.js,
+      salvato: old.modificato
+    }));
+    const all = fs.readdirSync(dir).filter(function (f) { return f.endsWith('.json'); }).sort();
+    all.slice(0, Math.max(0, all.length - MAX_VERSIONS)).forEach(function (f) {
+      try { fs.unlinkSync(path.join(dir, f)); } catch (e) { /* già tolta */ }
+    });
+  }
+
+  function listVersions(kind, id) {
+    const dir = path.join(itemDir(kind, id), '_versioni');
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir).filter(function (f) { return f.endsWith('.json'); }).sort().reverse().map(function (f) {
+      const ver = f.slice(0, -5);
+      const j = readJsonSafe(path.join(dir, f), {}) || {};
+      return { ver: ver, nome: S.str(j.nome), salvato: S.str(j.salvato) };
+    });
+  }
+
+  function getVersion(kind, id, ver) {
+    if (!VER_RE.test(S.str(ver))) throw new Error('Versione non valida');
+    const j = readJsonSafe(path.join(itemDir(kind, id), '_versioni', ver + '.json'), null);
+    if (!j) throw new Error('Versione non trovata');
+    return { ver: ver, nome: S.str(j.nome), descrizione: S.str(j.descrizione), tag: Array.isArray(j.tag) ? j.tag.map(String) : [], html: S.str(j.html), css: S.str(j.css), js: S.str(j.js) };
+  }
+
+  /* ---------- backup e ripristino ---------- */
+
+  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root']);
+  const BACKUP_FILES = ['catalogo.json', 'libreria.json'];
+
+  function backupEntries() {
+    const out = [];
+    (function walk(dir, rel) {
+      fs.readdirSync(dir, { withFileTypes: true }).forEach(function (ent) {
+        const r = rel ? rel + '/' + ent.name : ent.name;
+        if (!rel && !(ent.isDirectory() ? BACKUP_TOP.indexOf(ent.name) !== -1 : BACKUP_FILES.indexOf(ent.name) !== -1)) return;
+        if (/\.tmp-|\.corrotto-/.test(ent.name)) return;
+        const full = path.join(dir, ent.name);
+        if (ent.isDirectory()) walk(full, r);
+        else out.push({ name: r, data: fs.readFileSync(full) });
+      });
+    })(root, '');
+    return out;
+  }
+
+  function backupZip() {
+    return zip.createZip(backupEntries());
+  }
+
+  /* Rimette i dati da uno ZIP. Prima sposta nel cestino quello che c'è ora. */
+  function restoreZip(buf) {
+    const entries = zip.readZip(buf).filter(function (e) {
+      const top = e.name.split('/')[0];
+      return e.name.indexOf('/') === -1 ? BACKUP_FILES.indexOf(e.name) !== -1 : BACKUP_TOP.indexOf(top) !== -1;
+    });
+    if (!entries.length) throw new Error('Questo ZIP non contiene un backup di CAT-ALOG');
+    const tops = {};
+    entries.forEach(function (e) { tops[e.name.split('/')[0]] = true; });
+    let cestino = null;
+    Object.keys(tops).forEach(function (t) {
+      if (fs.existsSync(p(t))) cestino = moveToTrash(p(t), 'prima-del-ripristino-' + t);
+    });
+    entries.forEach(function (e) {
+      const dest = path.resolve(root, e.name);
+      if (dest.indexOf(root + path.sep) !== 0) return;
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, e.data);
+    });
+    init();
+    return { file: entries.length, cestino: cestino };
+  }
+
   /* ---------- avvio ---------- */
 
   /* Libreria di esempio: si installa una volta per versione, senza toccare né ripristinare nulla. */
@@ -527,7 +625,11 @@ function createStore(dataDir) {
     rootFormatText: rootFormatText,
     exportItem: exportItem,
     exportAll: exportAll,
-    importFolder: importFolder
+    importFolder: importFolder,
+    listVersions: listVersions,
+    getVersion: getVersion,
+    backupZip: backupZip,
+    restoreZip: restoreZip
   };
 }
 

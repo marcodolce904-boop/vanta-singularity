@@ -378,3 +378,23 @@ test('controllo qualità e opzioni di anteprima', async (t) => {
   assert.equal(P.frame.style.width, '667px');
   assert.deepEqual(H.state.errors, []);
 });
+
+test('versioni: dopo due salvataggi si può ricaricare quella vecchia nell\'editor', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  const P = await open(H, 'strutture', 'Due colonne');
+  const originale = P.code.value;
+  H.click(P.btn('Versioni…'));
+  await H.waitFor(() => /Non ci sono ancora/.test(H.toast()), 'nessuna versione');
+
+  H.type(P.code, '<p>SECONDA</p>');
+  H.click(P.btn('Salva'));
+  await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
+  H.click(P.btn('Versioni…'));
+  const dlg = await H.dialog();
+  H.click(dlg.querySelector('.list-btn'));
+  await H.noDialog();
+  await H.waitFor(() => P.code.value === originale, 'versione caricata');
+  assert.match(P.status(), /Modifiche non salvate/);
+  assert.deepEqual(H.state.errors, []);
+});

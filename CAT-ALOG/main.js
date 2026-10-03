@@ -20,6 +20,36 @@ function makeUi() {
       const r = await dialog.showSaveDialog(win, { defaultPath: nome, filters: filtri });
       return r.canceled || !r.filePath ? null : r.filePath;
     },
+    chooseOpenFile: async function (titolo, filtri) {
+      const r = await dialog.showOpenDialog(win, { title: titolo, properties: ['openFile'], filters: filtri });
+      return r.canceled || !r.filePaths.length ? null : r.filePaths[0];
+    },
+    /* Disegna la pagina in una finestra nascosta e ne fa una foto intera per ogni larghezza. */
+    renderPng: async function (doc, widths) {
+      const out = [];
+      for (const width of widths) {
+        const w = new BrowserWindow({
+          show: false,
+          width: width,
+          height: 800,
+          useContentSize: true,
+          webPreferences: { offscreen: true, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false }
+        });
+        try {
+          w.webContents.setFrameRate(5);
+          await w.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(doc));
+          await new Promise(function (r) { setTimeout(r, 400); });
+          const height = await w.webContents.executeJavaScript('Math.ceil(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight))');
+          w.setContentSize(width, Math.min(Math.max(height, 100), 6000));
+          await new Promise(function (r) { setTimeout(r, 300); });
+          const img = await w.webContents.capturePage();
+          out.push({ width: width, png: img.toPNG() });
+        } finally {
+          w.destroy();
+        }
+      }
+      return out;
+    },
     copy: function (testo) {
       clipboard.writeText(testo);
     },

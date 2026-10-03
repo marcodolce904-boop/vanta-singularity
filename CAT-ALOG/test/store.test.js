@@ -233,3 +233,39 @@ test('importFolder: legge html, css e js di una cartella qualsiasi', () => {
   assert.equal(s.list('animazioni').length, 4 + lib.animazioni.length);
   assert.equal(s.list('interazioni').length, 5 + lib.interazioni.length);
 });
+
+test('versioni: ogni salvataggio conserva la precedente (max 20) e si rilegge', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cat-ver-'));
+  const s = createStore(dir);
+  s.init();
+  const o = s.save('strutture', null, { nome: 'Prova', html: '<p>v1</p>' });
+  assert.deepEqual(s.listVersions('strutture', o.id), []);
+  s.save('strutture', o.id, { nome: 'Prova', html: '<p>v2</p>' });
+  s.save('strutture', o.id, { nome: 'Prova', html: '<p>v2</p>' }); /* uguale: niente nuova versione */
+  s.save('strutture', o.id, { nome: 'Prova', html: '<p>v3</p>' });
+  const v = s.listVersions('strutture', o.id);
+  assert.equal(v.length, 2);
+  assert.equal(s.getVersion('strutture', o.id, v[1].ver).html, '<p>v1</p>');
+  assert.equal(s.getVersion('strutture', o.id, v[0].ver).html, '<p>v2</p>');
+  assert.throws(() => s.getVersion('strutture', o.id, '../../x'), /non valida/);
+  assert.equal(s.list('strutture').filter((x) => x.id === o.id).length, 1, 'la cartella versioni non è un elemento');
+  for (let i = 0; i < 25; i++) s.save('strutture', o.id, { nome: 'Prova', html: '<p>n' + i + '</p>' });
+  assert.equal(s.listVersions('strutture', o.id).length, 20);
+});
+
+test('backup e ripristino: ZIP con i dati, i file tornano com\'erano e i vecchi vanno nel cestino', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cat-bk-'));
+  const s = createStore(dir);
+  s.init();
+  const o = s.save('componenti', null, { nome: 'Da salvare', html: '<b>x</b>', js: 'a()' });
+  const nStrutture = s.list('strutture').length;
+  const zipBuf = s.backupZip();
+  s.save('componenti', o.id, { nome: 'Da salvare', html: '<b>CAMBIATO</b>', js: 'b()' });
+  s.remove('strutture', s.list('strutture')[0].id);
+  const r = s.restoreZip(zipBuf);
+  assert.ok(r.file > 10 && r.cestino);
+  assert.equal(s.get('componenti', o.id).html, '<b>x</b>');
+  assert.equal(s.list('strutture').length, nStrutture, 'anche la struttura eliminata è tornata');
+  assert.ok(fs.readdirSync(path.join(dir, '_cestino')).some((n) => n.startsWith('prima-del-ripristino-componenti')));
+  assert.throws(() => s.restoreZip(require('../lib/zip').createZip([{ name: 'altro/x.txt', data: 'x' }])), /non contiene/);
+});

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { createStore } = require('./store');
+const S = require('./shared');
 
 const API_NAMES = [
   'getConfig',
@@ -29,6 +30,11 @@ const API_NAMES = [
   'exportRootFormat',
   'exportAll',
   'importFolder',
+  'listVersions',
+  'getVersion',
+  'backup',
+  'restore',
+  'exportPng',
   'copy'
 ];
 
@@ -164,6 +170,44 @@ function createApi(opzioni) {
       const dir = await ui.chooseFolder('Quale cartella HTML/CSS/JS importo?');
       if (!dir) return { annullato: true };
       return Object.assign({ annullato: false }, store.importFolder(dir));
+    },
+
+    listVersions: async function (kind, id) { return store.listVersions(kind, id); },
+    getVersion: async function (kind, id, ver) { return store.getVersion(kind, id, ver); },
+
+    backup: async function () {
+      const d = new Date();
+      const z = function (n) { return String(n).padStart(2, '0'); };
+      const nome = 'cat-alog-backup-' + d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()) + '.zip';
+      const file = await ui.chooseSaveFile(nome, [{ name: 'ZIP', extensions: ['zip'] }]);
+      if (!file) return { annullato: true };
+      const buf = store.backupZip();
+      fs.writeFileSync(file, buf);
+      return { annullato: false, percorso: file, byte: buf.length };
+    },
+
+    restore: async function () {
+      const file = await ui.chooseOpenFile('Scegli il backup ZIP da ripristinare', [{ name: 'ZIP', extensions: ['zip'] }]);
+      if (!file) return { annullato: true };
+      return Object.assign({ annullato: false }, store.restoreZip(fs.readFileSync(file)));
+    },
+
+    exportPng: async function (kind, data) {
+      const dest = await ui.chooseFolder('Dove salvo le immagini PNG?');
+      if (!dest) return { annullato: true };
+      const g = store.globalCss();
+      const d = data || {};
+      const doc = S.buildPreviewDoc({ html: d.html, css: d.css, js: d.js, rootCss: g.rootCss, classiCss: g.classiCss });
+      const widths = [375, 768, 1280];
+      const shots = await ui.renderPng(doc, widths);
+      const nome = S.slugify(d.nome || 'senza-nome');
+      const files = [];
+      shots.forEach(function (s) {
+        const f = path.join(dest, nome + '-' + s.width + '.png');
+        fs.writeFileSync(f, s.png);
+        files.push(f);
+      });
+      return { annullato: false, cartella: dest, files: files };
     },
 
     copy: async function (testo) {

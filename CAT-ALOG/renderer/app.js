@@ -243,6 +243,36 @@
                 .catch(function (e) { say(App.cleanError(e), true); });
             })
           ]),
+          h('div', { class: 'field' }, [h('span', { text: 'Backup' })]),
+          h('div', { class: 'btn-row' }, [
+            small('Crea backup ZIP…', function () {
+              Promise.resolve(window.api.backup())
+                .then(function (r) {
+                  if (r.annullato) return;
+                  say('Backup salvato: ' + r.percorso, false);
+                })
+                .catch(function (e) { say(App.cleanError(e), true); });
+            }),
+            small('Ripristina da backup…', function () {
+              if (anyDirty()) {
+                say('Prima salva o annulla le modifiche nelle schede, poi ripristina.', true);
+                return;
+              }
+              App.askConfirm({
+                title: 'Ripristinare da un backup?',
+                message: 'I dati attuali delle parti presenti nel backup vanno nel cestino (_cestino) e al loro posto arrivano quelli del backup.',
+                okLabel: 'Scegli il backup',
+                danger: true
+              }).then(function (yes) {
+                if (!yes) return;
+                return Promise.resolve(window.api.restore()).then(function (r) {
+                  if (r.annullato) return;
+                  say('Ripristinati ' + r.file + ' file. I dati di prima sono in: ' + r.cestino, false);
+                  return reloadAll();
+                });
+              }).catch(function (e) { say(App.cleanError(e), true); });
+            })
+          ]),
           msg,
           h('div', { class: 'modal-actions' }, [
             h('button', { type: 'button', class: 'btn primary', text: 'Chiudi', onclick: function () { finish(true); } })

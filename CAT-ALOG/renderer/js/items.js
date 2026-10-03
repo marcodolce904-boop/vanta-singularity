@@ -174,6 +174,8 @@
 
     var dupBtn = h('button', { type: 'button', class: 'btn', text: 'Duplica' });
     var expBtn = h('button', { type: 'button', class: 'btn', text: 'Esporta cartella' });
+    var pngBtn = h('button', { type: 'button', class: 'btn', text: 'Esporta PNG', title: 'Tre immagini a 375, 768 e 1280 px' });
+    var verBtn = h('button', { type: 'button', class: 'btn', text: 'Versioni…', title: 'Torna a una versione salvata prima' });
     var delBtn = h('button', { type: 'button', class: 'btn danger', text: 'Elimina' });
 
     root.appendChild(
@@ -189,7 +191,7 @@
         h('div', { class: 'group-label', text: 'Copia negli appunti' }),
         copyRow,
         h('div', { class: 'group-label', text: 'Altre azioni' }),
-        h('div', { class: 'btn-row' }, [dupBtn, expBtn, delBtn])
+        h('div', { class: 'btn-row' }, [dupBtn, expBtn, pngBtn, verBtn, delBtn])
       ])
     );
 
@@ -532,6 +534,56 @@
 
     addBtn.addEventListener('click', create);
     importBtn.addEventListener('click', importAny);
+    pngBtn.addEventListener('click', function () {
+      if (!st.draft) return;
+      App.run(function () { return window.api.exportPng(kind, payload()); }).then(function (r) {
+        if (r && !r.annullato) App.toast('Salvate ' + r.files.length + ' immagini in: ' + r.cartella);
+      });
+    });
+    verBtn.addEventListener('click', function () {
+      if (!st.draft || !st.id) return;
+      App.run(function () { return window.api.listVersions(kind, st.id); }).then(function (list) {
+        if (!list) return;
+        if (!list.length) {
+          App.toast('Non ci sono ancora versioni precedenti: se ne crea una a ogni salvataggio che cambia qualcosa');
+          return;
+        }
+        return App.modal(function (d, finish) {
+          d.appendChild(
+            h('div', { class: 'modal-form' }, [
+              h('h2', { text: 'Versioni precedenti' }),
+              h('p', { class: 'muted', text: 'Scegline una: va nell\'editor, ma non è salvata finché non premi Salva.' }),
+              h('ul', { class: 'list global-results' }, list.map(function (v) {
+                return h('li', null, [
+                  h('button', { type: 'button', class: 'list-btn', onclick: function () { finish(v.ver); } },
+                    [v.nome || '(senza nome)', h('small', { text: 'Salvata il ' + (v.salvato ? v.salvato.replace('T', ' ').slice(0, 16) : v.ver) })])
+                ]);
+              })),
+              h('div', { class: 'modal-actions' }, [
+                h('button', { type: 'button', class: 'btn', text: 'Chiudi', onclick: function () { finish(null); } })
+              ])
+            ])
+          );
+        }).then(function (ver) {
+          if (!ver) return;
+          return App.run(function () { return window.api.getVersion(kind, st.id, ver); }).then(function (o) {
+            if (!o) return;
+            st.draft.html = o.html;
+            st.draft.css = o.css;
+            st.draft.js = o.js;
+            fNome.value = o.nome;
+            fDesc.value = o.descrizione;
+            fTags.value = (o.tag || []).join(', ');
+            setActive(st.active);
+            updateStatus();
+            updateQuality();
+            refreshSoon.cancel();
+            preview.refresh();
+            App.toast('Versione caricata nell\'editor: premi Salva per tenerla');
+          });
+        });
+      });
+    });
     favChk.addEventListener('change', function () {
       st.onlyFav = favChk.checked;
       renderList();
