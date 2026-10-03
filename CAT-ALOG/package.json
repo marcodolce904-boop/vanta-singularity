@@ -10,7 +10,8 @@
     "start": "electron .",
     "test": "node --test",
     "dist": "npx --yes electron-builder",
-    "smoke": "xvfb-run -a -s \"-screen 0 1440x900x24\" node scripts/smoke-electron.js"
+    "smoke": "xvfb-run -a -s \"-screen 0 1440x900x24\" node scripts/smoke-electron.js",
+    "dist:win": "npx --yes electron-builder --win"
   },
   "build": {
     "appId": "com.catalog.catalog",
@@ -42,5 +43,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "author": "CAT-ALOG"
 }

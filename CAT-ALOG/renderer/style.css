@@ -77,19 +77,21 @@ code, .mono { font-family: var(--ui-mono); font-size: 13px; }
 /* ---------- barra in alto ---------- */
 
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    ". brand actions"
+    "tabs tabs tabs";
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 8px 16px;
-  padding: 8px 16px;
+  gap: 6px 16px;
+  padding: 8px 16px 6px;
   background: var(--ui-panel);
   border-bottom: 1px solid var(--ui-border);
 }
 
-.brand { font-size: 16px; }
-.brand { flex: none; white-space: nowrap; }
-.tabs { display: flex; gap: 4px; flex: 1 1 0; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
-.top-actions { display: flex; flex: none; gap: 8px; }
+.brand { grid-area: brand; justify-self: center; }
+.tabs { grid-area: tabs; display: flex; justify-content: safe center; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.top-actions { grid-area: actions; justify-self: end; display: flex; gap: 8px; }
 
 .tab {
   flex: none;
@@ -450,8 +452,40 @@ div.asset-big { height: 140px; }
 
 /* ---------- aspetto: logo e temi ---------- */
 
-.brand { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; }
-.brand-logo { width: 34px; height: 34px; flex: none; }
+/* Montserrat Black, inclusa nell'app (licenza OFL in renderer/fonts): funziona anche senza connessione. */
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("fonts/montserrat-latin-900-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("fonts/montserrat-latin-ext-900-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  font-family: "Montserrat", var(--ui-font);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  color: var(--ui-text);
+  white-space: nowrap;
+}
+.brand-logo { width: 44px; height: 44px; flex: none; }
 
 :root[data-theme="gatti"] {
   color-scheme: light;

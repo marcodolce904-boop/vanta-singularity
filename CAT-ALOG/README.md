@@ -2,7 +2,11 @@
 
 App desktop personale (Electron) per tenere in un posto solo le tue **strutture flex**, i **componenti** (HTML, CSS, JS), le **classi** e le **variabili `:root`**: si modificano nell'app, si copiano con un clic, si esportano in cartelle vere da aprire in VS Code.
 
-## Avvio (circa 5 minuti)
+## Avvio su Windows
+
+Guida completa in **`INSTALLA.md`**. In breve: installa Node.js, poi doppio clic su **`AVVIA.bat`**.
+
+## Avvio da terminale (circa 5 minuti)
 
 1. Installa Node.js 20 o più recente da https://nodejs.org (se `node --version` risponde già, salta questo passo).
 2. Apri il terminale nella cartella del progetto ed esegui `npm install` (scarica Electron: 1-3 minuti).
@@ -51,6 +55,12 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - **Logo**: il Maneki-neko in alto a sinistra è un SVG disegnato per l'app (`renderer/img/maneki-neko-statico.svg`). La zampa saluta solo se ci passi sopra con il mouse, ed è ferma se hai chiesto meno movimento al sistema. La versione animata è `maneki-neko.svg`.
 - **Dettagli a tema** (solo nei temi Gatti): il gatto compare negli elenchi vuoti e le zampette sostituiscono i punti elenco nei consigli.
 - **Icona dell'app**: `build/icon.png` (1024 px), usata per la finestra e per l'installer.
+- **Titolo**: «CAT-ALOG» è in **Montserrat Black** (peso 900), centrato accanto al logo. Il font è incluso nell'app (`renderer/fonts/`, licenza OFL), quindi funziona anche senza internet.
+- **Misure per i tuoi SVG del logo**:
+  - *Logo in alto* (e negli elenchi vuoti): SVG **quadrato**, `viewBox="0 0 64 64"` consigliato; **massimo 256 × 256**; peso **massimo 30 KB**. Si vede a 44 × 44 px (negli elenchi vuoti a 56 × 56), quindi deve leggersi anche piccolissimo.
+  - Margine di 2-3 unità dal bordo del viewBox; tratti non più sottili di 1,5 unità (su 64); niente testo (trasforma in tracciati), niente immagini incorporate (`<image>`), niente `<script>` né riferimenti esterni.
+  - Versione animata: solo `transform` e `opacity`, con `@media (prefers-reduced-motion: reduce)` che la ferma.
+  - *Icona dell'app*: **PNG quadrato 1024 × 1024** (minimo 512 × 512), logo dentro un'area sicura del 10 % per lato.
 - **Cambiare logo o icona**: sostituisci i due file in `renderer/img/` (stesso nome) e `build/icon.png`. Per cambiare i colori di un tema modifica le variabili `--ui-*` nei blocchi `:root[data-theme="gatti"]` e `:root[data-theme="gatti-scuro"]` in `renderer/style.css`. Per un tema nuovo: copia uno dei due blocchi con un altro nome e aggiungilo alla lista `TEMI` in `renderer/app.js` e al controllo in `renderer/index.html`.
 
 ## Editor del codice e VS Code

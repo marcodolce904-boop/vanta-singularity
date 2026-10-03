@@ -70,3 +70,15 @@ test('tema: il selettore in Impostazioni cambia l\'aspetto senza memoria locale'
   assert.ok(H.d.getElementById('brand-logo').getAttribute('src').endsWith('maneki-neko-statico.svg'));
   assert.deepEqual(H.state.errors, []);
 });
+
+test('titolo: Montserrat Black è inclusa nell\'app e usata dal titolo', () => {
+  const root = path.join(__dirname, '..', 'renderer');
+  ['montserrat-latin-900-normal.woff2', 'montserrat-latin-ext-900-normal.woff2', 'LICENSE-Montserrat-OFL.txt'].forEach((f) => {
+    assert.ok(fs.statSync(path.join(root, 'fonts', f)).size > 1000, f);
+  });
+  const head = fs.readFileSync(path.join(root, 'fonts', 'montserrat-latin-900-normal.woff2')).slice(0, 4).toString('latin1');
+  assert.equal(head, 'wOF2', 'è un vero file woff2');
+  assert.match(css, /font-family: "Montserrat";[\s\S]*?font-weight: 900;[\s\S]*?fonts\/montserrat-latin-900-normal\.woff2/);
+  assert.match(css, /\.brand \{[^}]*font-family: "Montserrat"[^}]*font-weight: 900/);
+  assert.match(css, /grid-template-areas:\s*"\. brand actions"\s*"tabs tabs tabs"/);
+});

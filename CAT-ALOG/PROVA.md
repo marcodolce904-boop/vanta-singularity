@@ -5,7 +5,7 @@ Se qualcosa non torna, annota il numero del passo e cosa hai visto: mi basta que
 
 ## A. Avvio (circa 5 minuti)
 
-1. Installa Node.js 20 o più nuovo da https://nodejs.org (se `node --version` risponde già, salta).
+1. Installa Node.js 20 o più nuovo da https://nodejs.org (se `node --version` risponde già, salta). Dettagli in `INSTALLA.md`; per avviare basta anche il doppio clic su `AVVIA.bat`.
 2. Scarica il branch `claude/sweet-newton-uovnqp` del repo `vanta-singularity` e apri la cartella `CAT-ALOG`.
 3. In quella cartella apri il terminale ed esegui `npm install`. *Vedi:* scarica Electron, nessun errore rosso.
 4. Esegui `npm start`. *Vedi:* si apre la finestra «CAT-ALOG» con il gatto in alto a sinistra.
