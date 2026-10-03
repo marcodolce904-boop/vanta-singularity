@@ -298,3 +298,60 @@ test('griglia: classi e strutture container › row › col', () => {
   const conta = s.getClassi().gruppi.reduce((n, x) => n + x.classi.filter((c) => c.nome === 'cat-container').length, 0);
   assert.equal(conta, 1);
 });
+
+test('pagine: esempi installati, anteprima, esportazione e kit del sito', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cat-pg-'));
+  const s = createStore(path.join(dir, 'd'));
+  s.init();
+  const pagine = s.listPages();
+  assert.ok(pagine.length >= 2, 'pagine di esempio');
+  const vetrina = s.getPage(pagine.find((x) => x.nome.startsWith('Pagina vetrina')).id);
+  assert.equal(vetrina.sezioni.length, 6, 'tutte le sezioni di esempio esistono');
+
+  const prev = s.previewPage(vetrina);
+  assert.match(prev.doc, /<style>/);
+  assert.doesNotMatch(prev.doc, /<link rel="stylesheet"/);
+  assert.match(prev.doc, /--cat-color-primary/);
+
+  const out = path.join(dir, 'out');
+  const r = s.exportPage(vetrina, out);
+  assert.ok(fs.existsSync(path.join(r.cartella, 'index.html')));
+  assert.ok(fs.existsSync(path.join(r.cartella, 'css', 'pagina.css')));
+  assert.ok(fs.existsSync(path.join(r.cartella, 'css', 'root.css')));
+  assert.ok(fs.existsSync(path.join(r.cartella, 'css', 'cat-classi.css')));
+  const html = fs.readFileSync(path.join(r.cartella, 'index.html'), 'utf8');
+  assert.match(html, /<!-- ===== Hero con gradiente e badge ===== -->/);
+  const logoRules = (fs.readFileSync(path.join(r.cartella, 'css', 'pagina.css'), 'utf8').match(/\.cat-logo \{/g) || []).length;
+  assert.ok(logoRules <= 1, 'il css del logo non è ripetuto: ' + logoRules);
+
+  /* sezione eliminata: la pagina segnala e continua */
+  const nuova = s.savePage(null, { nome: 'Prova', sezioni: [{ kind: 'strutture', id: 'non-esiste' }, vetrina.sezioni[0]] });
+  assert.equal(nuova.sezioni.length, 2);
+  assert.ok(s.previewPage(nuova).avvisi.some((a) => /non trovata/.test(a)));
+
+  /* asset usato dalla pagina */
+  fs.writeFileSync(path.join(dir, 'foto.png'), Buffer.from('89504e470d0a1a0a', 'hex'));
+  s.addAsset(path.join(dir, 'foto.png'));
+  s.savePage(nuova.id, Object.assign({}, nuova, { sezioni: nuova.sezioni.filter((z) => z.id !== 'non-esiste') }));
+  const custom = s.save('strutture', null, { nome: 'Con foto', html: '<img src="assets/foto.png" alt="">', css: '' });
+  const conFoto = s.savePage(null, { nome: 'Con foto pagina', sezioni: [{ kind: 'strutture', id: custom.id }] });
+  assert.deepEqual(s.previewPage(conFoto).assets, ['foto.png']);
+  assert.match(s.previewPage(conFoto).doc, /src="data:image\/png;base64,/);
+
+  const kit = s.exportKit({ nome: 'Sito Cliente', pagine: [conFoto.id, vetrina.id], asset: 'usati', seo: true, tokens: true }, out);
+  assert.equal(kit.pagine, 2);
+  assert.equal(kit.asset, 1);
+  ['index.html', 'css/root.css', 'css/cat-classi.css', 'css/responsive.css', 'assets/foto.png', 'tokens/figma-tokens.json', 'seo/head.html', 'kit.json', 'LEGGIMI.txt', 'pagina-vetrina-esempio.html'].forEach((f) =>
+    assert.ok(fs.existsSync(path.join(kit.cartella, f)), f)
+  );
+  assert.match(fs.readFileSync(path.join(kit.cartella, 'index.html'), 'utf8'), /assets\/foto\.png/);
+  assert.match(fs.readFileSync(path.join(kit.cartella, 'pagina-vetrina-esempio.html'), 'utf8'), /href="css\/pagina-vetrina-esempio\.css"/);
+  assert.equal(s.saveKit({ nome: 'X', asset: 'tutti' }).asset, 'tutti');
+  assert.equal(s.getKit().nome, 'X');
+  assert.throws(() => s.exportKit({ pagine: ['non-esiste'] }, out), /Non ci sono pagine/);
+
+  s.duplicatePage(vetrina.id);
+  assert.ok(s.removePage(vetrina.id).cestino);
+  const zipBuf = s.backupZip();
+  assert.ok(require('../lib/zip').readZip(zipBuf).some((e) => e.name.startsWith('pagine/')));
+});

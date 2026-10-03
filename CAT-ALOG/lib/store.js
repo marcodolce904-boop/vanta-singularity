@@ -8,6 +8,8 @@ const libreria = require('./libreria');
 const zip = require('./zip');
 const assetinfo = require('./assetinfo');
 const Seo = require('./seo');
+const PB = require('./pagebuilder');
+const Resp = require('./responsive');
 
 const KINDS = {
   strutture: { js: false },
@@ -611,9 +613,258 @@ function createStore(dataDir) {
     return norm;
   }
 
+  /* ---------- pagine e kit ---------- */
+
+  const PAGE_KINDS = Object.keys(KINDS);
+
+  function normPage(d, old) {
+    const x = d || {};
+    const inc = x.includi && typeof x.includi === 'object' ? x.includi : {};
+    return {
+      nome: S.str(x.nome).trim() || 'Senza nome',
+      titolo: S.str(x.titolo),
+      descrizione: S.str(x.descrizione),
+      lingua: S.str(x.lingua).trim() || 'it',
+      includi: { root: inc.root !== false, classi: inc.classi !== false, responsive: inc.responsive === true },
+      usaSeo: x.usaSeo === true,
+      sezioni: (Array.isArray(x.sezioni) ? x.sezioni : [])
+        .filter(function (z) { return z && PAGE_KINDS.indexOf(z.kind) !== -1 && S.isValidId(z.id); })
+        .map(function (z) { return { kind: z.kind, id: z.id }; })
+    };
+  }
+
+  function summaryPage(id, j) {
+    const m = j && typeof j === 'object' ? j : {};
+    return {
+      id: id,
+      nome: S.str(m.nome) || id,
+      titolo: S.str(m.titolo),
+      sezioni: Array.isArray(m.sezioni) ? m.sezioni.length : 0,
+      modificato: S.str(m.modificato)
+    };
+  }
+
+  function listPages() {
+    const base = p('pagine');
+    if (!fs.existsSync(base)) return [];
+    const out = [];
+    fs.readdirSync(base, { withFileTypes: true }).forEach(function (ent) {
+      if (!ent.isDirectory() || ent.name.charAt(0) === '_' || !S.isValidId(ent.name)) return;
+      out.push(summaryPage(ent.name, readJsonSafe(path.join(base, ent.name, 'pagina.json'), null)));
+    });
+    out.sort(function (a, b) { return a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' }); });
+    return out;
+  }
+
+  function getPage(id) {
+    assertId(id);
+    const j = readJsonSafe(p('pagine', id, 'pagina.json'), null);
+    if (!j) throw new Error('Pagina non trovata: ' + id);
+    return Object.assign({ id: id, creato: S.str(j.creato), modificato: S.str(j.modificato) }, normPage(j));
+  }
+
+  function savePage(id, data) {
+    const norm = normPage(data);
+    const now = new Date().toISOString();
+    let theId = id;
+    let creato = now;
+    if (theId == null) {
+      const existing = new Set(fs.existsSync(p('pagine')) ? fs.readdirSync(p('pagine')) : []);
+      theId = S.uniqueSlug(S.slugify(norm.nome), existing);
+    } else {
+      assertId(theId);
+      const old = readJsonSafe(p('pagine', theId, 'pagina.json'), null);
+      if (!old) throw new Error('Pagina non trovata: ' + theId);
+      if (old.creato) creato = old.creato;
+    }
+    writeFile(p('pagine', theId, 'pagina.json'), JSON.stringify(Object.assign({}, norm, { creato: creato, modificato: now }), null, 2) + '\n');
+    return getPage(theId);
+  }
+
+  function duplicatePage(id) {
+    const o = getPage(id);
+    return savePage(null, Object.assign({}, o, { nome: o.nome + ' (copia)' }));
+  }
+
+  function removePage(id) {
+    assertId(id);
+    if (!fs.existsSync(p('pagine', id))) throw new Error('Pagina non trovata: ' + id);
+    return { cestino: moveToTrash(p('pagine', id), 'pagina-' + id) };
+  }
+
+  function resolveSections(sezioni) {
+    const out = [];
+    const mancanti = [];
+    sezioni.forEach(function (z) {
+      try {
+        const it = get(z.kind, z.id);
+        out.push({ kind: z.kind, id: z.id, nome: it.nome, html: it.html, css: it.css, js: it.js });
+      } catch (e) {
+        mancanti.push(z.kind + '/' + z.id);
+      }
+    });
+    return { sezioni: out, mancanti: mancanti };
+  }
+
+  function seoHeadExtra() {
+    return Seo.buildHead(getSeo()).split('\n').filter(function (l) {
+      return !/^<meta charset|^<meta name="viewport"|^<title>|^<meta name="description"/.test(l);
+    }).join('\n').replace(/^\n+/, '');
+  }
+
+  function buildPage(data, extra) {
+    const page = normPage(data);
+    const r = resolveSections(page.sezioni);
+    const built = PB.assemble(
+      Object.assign({}, page, { headExtra: page.usaSeo ? seoHeadExtra() : '' }),
+      r.sezioni,
+      { prefisso: getSettings().prefisso }
+    );
+    r.mancanti.forEach(function (m) { built.avvisi.unshift('Sezione non trovata (eliminata?): ' + m); });
+    built.pagina = page;
+    return built;
+  }
+
+  /* Anteprima in un file solo, con immagini e video piccoli già dentro. */
+  function previewPage(data) {
+    const built = buildPage(data);
+    const inc = built.pagina.includi;
+    const g = globalCss();
+    const map = {};
+    built.assets.forEach(function (name) {
+      try {
+        const f = assetPath(name);
+        if (fs.existsSync(f) && fs.statSync(f).size <= 2 * 1024 * 1024) {
+          const ext = assetinfo.extOf(name);
+          const mime = { svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', ico: 'image/x-icon' }[ext] || 'application/octet-stream';
+          map[name] = 'data:' + mime + ';base64,' + fs.readFileSync(f).toString('base64');
+        }
+      } catch (e) { /* asset non valido: resta il percorso */ }
+    });
+    const doc = PB.inlinePreview(
+      built,
+      ['body{margin:0;font-family:system-ui,sans-serif}', inc.root ? g.rootCss : '', inc.classi ? g.classiCss : '', inc.responsive ? Resp.buildCss() : ''],
+      map
+    );
+    return { doc: doc, avvisi: built.avvisi, assets: built.assets };
+  }
+
+  function writeSharedCss(dir, inc) {
+    const prefisso = getSettings().prefisso;
+    if (inc.root) writeFile(path.join(dir, 'css', 'root.css'), cssText('root'));
+    if (inc.classi) writeFile(path.join(dir, 'css', prefisso + '-classi.css'), cssText('classi'));
+    if (inc.responsive) writeFile(path.join(dir, 'css', 'responsive.css'), Resp.buildCss());
+  }
+
+  function copyAssets(dir, names, avvisi) {
+    names.forEach(function (name) {
+      try {
+        const src = assetPath(name);
+        if (!fs.existsSync(src)) { avvisi.push('Asset mancante: ' + name); return; }
+        fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
+        fs.copyFileSync(src, path.join(dir, 'assets', name));
+      } catch (e) {
+        avvisi.push('Asset non copiato: ' + name);
+      }
+    });
+  }
+
+  function exportPage(data, destDir) {
+    if (!destDir) throw new Error('Cartella di destinazione mancante');
+    const built = buildPage(data);
+    const dir = uniqueDir(path.resolve(destDir), S.slugify(built.pagina.nome));
+    writeFile(path.join(dir, 'index.html'), built.html);
+    if (built.css.trim()) writeFile(path.join(dir, 'css', 'pagina.css'), built.css);
+    if (built.js.trim()) writeFile(path.join(dir, 'js', 'pagina.js'), built.js);
+    writeSharedCss(dir, built.pagina.includi);
+    const avvisi = built.avvisi.slice();
+    copyAssets(dir, built.assets, avvisi);
+    return { cartella: dir, file: path.join(dir, 'index.html'), avvisi: avvisi, assets: built.assets.length };
+  }
+
+  function normKit(d) {
+    const x = d || {};
+    return {
+      nome: S.str(x.nome).trim() || 'Il mio sito',
+      pagine: (Array.isArray(x.pagine) ? x.pagine : []).filter(function (id) { return S.isValidId(id); }),
+      asset: ['usati', 'tutti', 'nessuno'].indexOf(x.asset) !== -1 ? x.asset : 'usati',
+      seo: x.seo !== false,
+      tokens: x.tokens !== false
+    };
+  }
+
+  function getKit() {
+    return normKit(readJsonSafe(p('kit', 'kit.json'), null) || {});
+  }
+
+  function saveKit(data) {
+    const norm = normKit(data);
+    writeFile(p('kit', 'kit.json'), JSON.stringify(norm, null, 2) + '\n');
+    return norm;
+  }
+
+  /* Un sito intero: pagine collegate agli stessi css/, più asset, token, head e un file che lo descrive. */
+  function exportKit(data, destDir) {
+    if (!destDir) throw new Error('Cartella di destinazione mancante');
+    const kit = normKit(data);
+    const tutte = listPages();
+    const ids = kit.pagine.length ? kit.pagine.filter(function (id) { return tutte.some(function (x) { return x.id === id; }); }) : tutte.map(function (x) { return x.id; });
+    if (!ids.length) throw new Error('Non ci sono pagine da esportare. Crea almeno una pagina nella scheda Pagine.');
+    const dir = uniqueDir(path.resolve(destDir), S.slugify(kit.nome));
+    const avvisi = [];
+    const usati = [];
+    const files = [];
+    const inc = { root: true, classi: true, responsive: false };
+    ids.forEach(function (id, i) {
+      const page = getPage(id);
+      const built = buildPage(page);
+      inc.responsive = inc.responsive || built.pagina.includi.responsive;
+      const slug = i === 0 ? 'index' : S.slugify(page.nome);
+      let html = built.html;
+      if (built.css.trim()) {
+        writeFile(path.join(dir, 'css', slug + '.css'), built.css);
+        html = html.replace('css/pagina.css', 'css/' + slug + '.css');
+      }
+      if (built.js.trim()) {
+        writeFile(path.join(dir, 'js', slug + '.js'), built.js);
+        html = html.replace('js/pagina.js', 'js/' + slug + '.js');
+      }
+      /* anche le pagine che non chiedono i css condivisi funzionano: i file ci sono comunque */
+      writeFile(path.join(dir, slug + '.html'), html);
+      files.push(slug + '.html');
+      built.avvisi.forEach(function (a) { avvisi.push(page.nome + ': ' + a); });
+      built.assets.forEach(function (a) { if (usati.indexOf(a) === -1) usati.push(a); });
+    });
+    writeSharedCss(dir, { root: true, classi: true, responsive: true });
+    const tuttiAsset = listAssets().map(function (a) { return a.nome; });
+    const daCopiare = kit.asset === 'tutti' ? tuttiAsset : kit.asset === 'usati' ? usati : [];
+    copyAssets(dir, daCopiare, avvisi);
+    if (kit.tokens) writeFile(path.join(dir, 'tokens', 'figma-tokens.json'), tokensText());
+    if (kit.seo) writeFile(path.join(dir, 'seo', 'head.html'), Seo.buildHead(getSeo()));
+    writeFile(path.join(dir, 'kit.json'), JSON.stringify({
+      nome: kit.nome,
+      creato: new Date().toISOString(),
+      app: 'CAT-ALOG',
+      pagine: files,
+      asset: daCopiare,
+      css: ['root.css', getSettings().prefisso + '-classi.css', 'responsive.css']
+    }, null, 2) + '\n');
+    writeFile(path.join(dir, 'LEGGIMI.txt'),
+      kit.nome + '\n' + '='.repeat(kit.nome.length) + '\n\n' +
+      'Sito creato con CAT-ALOG.\n\n' +
+      'Pagine: ' + files.join(', ') + '\n' +
+      'css/    stili condivisi (root.css = colori e variabili, ' + getSettings().prefisso + '-classi.css = classi, responsive.css = media query) e uno per pagina\n' +
+      'js/     un file per pagina\n' +
+      (daCopiare.length ? 'assets/ immagini, SVG e altri file usati\n' : '') +
+      (kit.tokens ? 'tokens/ variabili per Figma (Tokens Studio)\n' : '') +
+      (kit.seo ? 'seo/    blocco <head> pronto da incollare\n' : '') +
+      '\nApri index.html con il browser, oppure la cartella con VS Code.\n');
+    return { cartella: dir, pagine: files.length, asset: daCopiare.length, avvisi: avvisi };
+  }
+
   /* ---------- backup e ripristino ---------- */
 
-  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo']);
+  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo', 'pagine', 'kit']);
   const BACKUP_FILES = ['catalogo.json', 'libreria.json'];
 
   function backupEntries() {
@@ -698,6 +949,20 @@ function createStore(dataDir) {
       n += classi.length;
     });
     if (nuoviGruppi) saveClassi(catalogo);
+    /* pagine di esempio: una volta sola, se i loro pezzi esistono */
+    const prevP = Array.isArray(seen.__pagine) ? seen.__pagine : [];
+    const nowP = prevP.slice();
+    (libreria.pagine || []).forEach(function (pg) {
+      const key = S.slugify(pg.nome);
+      if (nowP.indexOf(key) === -1) nowP.push(key);
+      if (prevP.indexOf(key) !== -1 || fs.existsSync(p('pagine', key))) return;
+      const sezioni = pg.sezioni.map(function (z) { return { kind: z[0], id: S.slugify(z[1]) }; })
+        .filter(function (z) { return fs.existsSync(p(z.kind, z.id)); });
+      if (!sezioni.length) return;
+      savePage(null, Object.assign({}, pg, { sezioni: sezioni }));
+      n += 1;
+    });
+    seen.__pagine = nowP;
     seen.__gruppi = nowG;
     writeFile(file, JSON.stringify({ versione: libreria.VERSIONE, installate: seen }, null, 2) + '\n');
     return n;
@@ -707,7 +972,7 @@ function createStore(dataDir) {
     fs.mkdirSync(root, { recursive: true });
     const fresh = !fs.existsSync(p('catalogo.json'));
     const added = [];
-    Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo']).forEach(function (d) {
+    Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo', 'pagine', 'kit']).forEach(function (d) {
       if (!fs.existsSync(p(d))) added.push(d);
       fs.mkdirSync(p(d), { recursive: true });
     });
@@ -752,6 +1017,16 @@ function createStore(dataDir) {
     exportItem: exportItem,
     exportAll: exportAll,
     importFolder: importFolder,
+    listPages: listPages,
+    getPage: getPage,
+    savePage: savePage,
+    duplicatePage: duplicatePage,
+    removePage: removePage,
+    previewPage: previewPage,
+    exportPage: exportPage,
+    getKit: getKit,
+    saveKit: saveKit,
+    exportKit: exportKit,
     getSeo: getSeo,
     saveSeo: saveSeo,
     listAssets: listAssets,

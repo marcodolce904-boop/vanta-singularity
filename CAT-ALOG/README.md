@@ -10,7 +10,7 @@ App desktop personale (Electron) per tenere in un posto solo le tue **strutture 
 
 Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette dei **contenuti di esempio**. Servono solo a far vedere come funziona: cancellali o modificali quando vuoi (finiscono nel cestino, vedi sotto).
 
-## Le 12 schede
+## Le 13 schede
 
 | Scheda | A cosa serve | Cosa fai |
 |---|---|---|
@@ -24,6 +24,7 @@ Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette de
 | **Icone** | 77 icone SVG a tratto | cerca, copia SVG / `<symbol>` / `<use>` / maschera CSS / data URI, sprite, **Pulisci SVG…** |
 | **Testi UI** | microcopy in italiano e inglese | copia la lingua, **Salva it.json / en.json** |
 | **Head e SEO** | blocco `<head>` completo | modulo + controlli + anteprima di Google, **Copia il blocco `<head>`** |
+| **Pagine** | assembli una pagina mettendo in fila strutture e componenti | **+ Aggiungi sezione**, riordina con ↑ ↓, anteprima dal vivo, **Esporta cartella**, **Esporta il sito (kit)** |
 | **Classi** | catalogo di sole classi CSS, a gruppi | copi il nome o la regola, **Prova** la classe in un riquadro, aggiungi/modifichi/togli classi e gruppi, **Salva**, **Esporta file CSS** |
 | **Root** | variabili `:root` (colori, font, spaziature, raggi, ombre…) | cambi i valori (selettore colore incluso), **preset** di palette, controllo contrasto AA, **Copia :root**, **Salva root.css**, **Esporta token Figma** |
 
@@ -43,6 +44,15 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
+
+## Pagine e kit del sito
+
+- **Pagine**: scegli sezioni da Strutture, Componenti, Animazioni e Interazioni, mettile nell'ordine che vuoi (↑ ↓) e vedi la pagina intera nell'anteprima (con le stesse opzioni: larghezze, ruota, scuro, griglia). Ogni sezione si prende **dalla versione salvata** dell'elemento: se la modifichi, la pagina la prende aggiornata. Due pagine di esempio già pronte.
+- **Esporta cartella**: `index.html`, `css/pagina.css`, `js/pagina.js`, i css condivisi che hai scelto (`root.css`, `cat-classi.css`, `responsive.css`) e gli asset usati (`assets/…`). Controllato aprendo il risultato in Chromium: stile, menu mobile e JavaScript funzionano senza errori.
+- **Cosa fa da solo**: toglie i blocchi di CSS ripetuti (per esempio il logo usato in tre sezioni), mette lo stile di base (font, colori e interlinea dal Root), isola ogni script in un proprio ambiente con `try/catch` (un errore non ferma gli altri) e copia solo gli asset che la pagina usa.
+- **Avvisi**: id ripetuti tra sezioni, più di un `h1`, sezioni eliminate dal catalogo, più sfondi di off-canvas, più i controlli di qualità sul risultato (alt, etichette, nomi dei pulsanti).
+- **Esporta il sito (kit)**: tutte le pagine (o quelle scelte) in una cartella: la prima è `index.html`, le altre prendono il nome della pagina; `css/`, `js/`, `assets/` (solo usati, tutti o nessuno), `tokens/figma-tokens.json`, `seo/head.html`, `kit.json` e un `LEGGIMI.txt`. Le scelte si ricordano in `kit/kit.json`.
+- Backup ed «Esporta tutto» includono anche `pagine/` e `kit/`.
 
 ## Icone
 

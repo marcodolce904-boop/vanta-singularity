@@ -38,6 +38,16 @@ const API_NAMES = [
   'restore',
   'exportPng',
   'exportResponsive',
+  'listPages',
+  'getPage',
+  'savePage',
+  'duplicatePage',
+  'removePage',
+  'previewPage',
+  'exportPage',
+  'getKit',
+  'saveKit',
+  'exportKit',
   'getSeo',
   'saveSeo',
   'saveTextFile',
@@ -200,6 +210,28 @@ function createApi(opzioni) {
       const file = await ui.chooseOpenFile('Scegli il backup ZIP da ripristinare', [{ name: 'ZIP', extensions: ['zip'] }]);
       if (!file) return { annullato: true };
       return Object.assign({ annullato: false }, store.restoreZip(fs.readFileSync(file)));
+    },
+
+    listPages: async function () { return store.listPages(); },
+    getPage: async function (id) { return store.getPage(id); },
+    savePage: async function (id, data) { return store.savePage(id, data); },
+    duplicatePage: async function (id) { return store.duplicatePage(id); },
+    removePage: async function (id) { return store.removePage(id); },
+    previewPage: async function (data) { return store.previewPage(data); },
+
+    exportPage: async function (data) {
+      const dest = await ui.chooseFolder('Dove esporto la pagina?');
+      if (!dest) return { annullato: true };
+      return Object.assign({ annullato: false }, store.exportPage(data, dest));
+    },
+
+    getKit: async function () { return store.getKit(); },
+    saveKit: async function (data) { return store.saveKit(data); },
+
+    exportKit: async function (data) {
+      const dest = await ui.chooseFolder('Dove esporto il sito?');
+      if (!dest) return { annullato: true };
+      return Object.assign({ annullato: false }, store.exportKit(data, dest));
     },
 
     getSeo: async function () { return store.getSeo(); },
