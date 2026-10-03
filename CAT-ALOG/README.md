@@ -30,6 +30,14 @@ Regole che valgono ovunque:
 - Nel campo del codice **Tab** inserisce 2 spazi; per uscire dal campo con la tastiera: **Esc**, poi **Tab**.
 - «Usa root e classi» nell'anteprima applica le variabili e le classi **salvate** alla tua struttura.
 
+## Libreria di esempi
+
+All'apertura l'app installa una **libreria** pronta (circa 60 voci): strutture di pagina con i punti per il logo (hero, header, footer, riga di loghi clienti), componenti (pulsanti, navbar, card, form, tabelle, switch, loader, carosello, icone social…), animazioni e interazioni. Regole:
+
+- Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
+- Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
+- Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
+
 ## Dove sono i tuoi file
 
 ```

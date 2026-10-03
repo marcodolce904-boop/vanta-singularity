@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const { createStore } = require('../lib/store');
 const seed = require('../lib/seed');
+const lib = require('../lib/libreria');
 
 function tmp() {
   return fs.mkdtempSync(path.join(process.env.TEST_TMPDIR || os.tmpdir(), 'catalogo-test-'));
@@ -25,15 +26,15 @@ const read = (...p) => fs.readFileSync(path.join(...p), 'utf8');
 test('init crea cartelle e contenuti di esempio una volta sola', () => {
   const { s, dir, seeded } = fresh();
   assert.equal(seeded, true);
-  assert.equal(s.list('strutture').length, seed.strutture.length);
-  assert.equal(s.list('componenti').length, seed.componenti.length);
+  assert.equal(s.list('strutture').length, (seed.strutture.length + lib.strutture.length));
+  assert.equal(s.list('componenti').length, (seed.componenti.length + lib.componenti.length));
   assert.equal(s.getClassi().gruppi.length, seed.classi.gruppi.length);
   assert.equal(s.getRoot().gruppi.length, seed.root.gruppi.length);
   ['catalogo.json', 'classi/classi.json', 'classi/cat-classi.css', 'root/root.json', 'root/root.css'].forEach((f) =>
     assert.ok(fs.existsSync(path.join(dir, f)), f)
   );
   assert.equal(createStore(dir).init().seeded, false);
-  assert.equal(createStore(dir).list('strutture').length, seed.strutture.length);
+  assert.equal(createStore(dir).list('strutture').length, (seed.strutture.length + lib.strutture.length));
 });
 
 test('save crea, aggiorna e conserva la data di creazione', async () => {
@@ -135,7 +136,7 @@ test('JSON corrotto: si riparte da vuoto e resta una copia', () => {
   fs.writeFileSync(path.join(dir, 'strutture', s.list('strutture')[0].id, 'meta.json'), 'nope', 'utf8');
   assert.deepEqual(s.getRoot().gruppi, []);
   assert.ok(fs.readdirSync(path.join(dir, 'root')).some((f) => f.startsWith('root.json.corrotto-')));
-  assert.equal(s.list('strutture').length, seed.strutture.length, 'un meta.json rotto non nasconde la cartella');
+  assert.equal(s.list('strutture').length, (seed.strutture.length + lib.strutture.length), 'un meta.json rotto non nasconde la cartella');
 });
 
 test('il prefisso cambia il nome del file CSS delle classi', () => {
@@ -172,8 +173,8 @@ test('exportAll scrive la struttura completa per VS Code', () => {
   const dest = path.join(base, 'export');
   fs.mkdirSync(dest);
   const r = s.exportAll(dest);
-  assert.equal(r.strutture, seed.strutture.length);
-  assert.equal(r.componenti, seed.componenti.length);
+  assert.equal(r.strutture, (seed.strutture.length + lib.strutture.length));
+  assert.equal(r.componenti, (seed.componenti.length + lib.componenti.length));
   ['css/root.css', 'css/cat-classi.css', 'tokens/figma-tokens.json'].forEach((f) =>
     assert.ok(fs.existsSync(path.join(r.cartella, f)), f)
   );
@@ -229,6 +230,6 @@ test('importFolder: legge html, css e js di una cartella qualsiasi', () => {
   assert.match(r.css, /h1\{margin:0\}/);
   assert.match(r.js, /a\(\)[\s\S]*b\(\)/);
   assert.throws(() => s.importFolder(path2.join(src, 'nope')), /non trovata/);
-  assert.equal(s.list('animazioni').length, 4);
-  assert.equal(s.list('interazioni').length, 5);
+  assert.equal(s.list('animazioni').length, 4 + lib.animazioni.length);
+  assert.equal(s.list('interazioni').length, 5 + lib.interazioni.length);
 });

@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const S = require('./shared');
 const seed = require('./seed');
+const libreria = require('./libreria');
 
 const KINDS = {
   strutture: { js: false },
@@ -440,6 +441,31 @@ function createStore(dataDir) {
 
   /* ---------- avvio ---------- */
 
+  /* Libreria di esempio: si installa una volta per versione, senza toccare né ripristinare nulla. */
+  function installLibrary() {
+    const file = p('libreria.json');
+    const done = readJsonSafe(file, null);
+    const have = done && Number.isInteger(done.versione) ? done.versione : 0;
+    if (have >= libreria.VERSIONE) return 0;
+    const seen = done && done.installate && typeof done.installate === 'object' ? done.installate : {};
+    let n = 0;
+    Object.keys(KINDS).forEach(function (kind) {
+      const prev = Array.isArray(seen[kind]) ? seen[kind] : [];
+      const now = prev.slice();
+      (libreria[kind] || []).forEach(function (it) {
+        const slug = S.slugify(it.nome);
+        if (now.indexOf(slug) === -1) now.push(slug);
+        /* già installata in passato (anche se poi eliminata) o già presente: non la tocco */
+        if (prev.indexOf(slug) !== -1 || fs.existsSync(p(kind, slug))) return;
+        save(kind, null, it);
+        n += 1;
+      });
+      seen[kind] = now;
+    });
+    writeFile(file, JSON.stringify({ versione: libreria.VERSIONE, installate: seen }, null, 2) + '\n');
+    return n;
+  }
+
   function init() {
     fs.mkdirSync(root, { recursive: true });
     const fresh = !fs.existsSync(p('catalogo.json'));
@@ -453,7 +479,7 @@ function createStore(dataDir) {
       ['animazioni', 'interazioni'].forEach(function (k) {
         if (added.indexOf(k) !== -1) seed[k].forEach(function (s) { save(k, null, s); });
       });
-      return { seeded: false };
+      return { seeded: false, libreria: installLibrary() };
     }
     writeFile(p('catalogo.json'), JSON.stringify({ versione: 1, prefisso: 'cat' }, null, 2) + '\n');
     Object.keys(KINDS).forEach(function (k) {
@@ -461,7 +487,7 @@ function createStore(dataDir) {
     });
     saveClassi(seed.classi);
     saveRoot(seed.root);
-    return { seeded: true };
+    return { seeded: true, libreria: installLibrary() };
   }
 
   return {

@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { boot } = require('./helpers/boot');
 const seed = require('../lib/seed');
+const lib = require('../lib/libreria');
 
 test('avvio: sei schede, la prima è aperta e mostra il primo elemento', async (t) => {
   const H = await boot();
@@ -21,7 +22,7 @@ test('avvio: sei schede, la prima è aperta e mostra il primo elemento', async (
   assert.equal(H.tab('strutture').getAttribute('aria-labelledby'), 'tab-strutture');
 
   const items = H.tab('strutture').querySelectorAll('.list-btn');
-  assert.equal(items.length, seed.strutture.length);
+  assert.equal(items.length, (seed.strutture.length + lib.strutture.length));
   const current = H.tab('strutture').querySelector('.list-btn[aria-current="true"]');
   assert.ok(current, 'il primo elemento è già selezionato');
   assert.equal(H.tab('strutture').classList.contains('no-selection'), false);
@@ -98,7 +99,7 @@ test('impostazioni: cartella, apri cartella e prefisso con errori dentro la fine
   H.click(H.button(dlg, 'Chiudi'));
   await H.noDialog();
   await H.settle();
-  assert.equal(H.tab('strutture').querySelectorAll('.list-btn').length, seed.strutture.length);
+  assert.equal(H.tab('strutture').querySelectorAll('.list-btn').length, (seed.strutture.length + lib.strutture.length));
   assert.deepEqual(H.state.errors, []);
 });
 
