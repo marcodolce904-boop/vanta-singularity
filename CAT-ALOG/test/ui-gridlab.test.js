@@ -62,6 +62,25 @@ test('scheda Griglia CSS: preset, tastiera, tracce, gap, place-items e codice', 
   base[1].dispatchEvent(new H.w.Event('change', { bubbles: true }));
   assert.ok(!/@media/.test(code()));
 
+  /* anteprima responsive */
+  H.click(H.button(p, 'Anteprima responsive'));
+  const frame = p.querySelector('.gl-frame');
+  assert.equal(p.querySelector('.gl-canvas').hidden, true);
+  assert.equal(frame.style.width, '1024px');
+  H.click(H.button(p.querySelector('.gl-widths'), '375'));
+  assert.equal(frame.style.width, '375px');
+  assert.match(p.querySelector('.gl-wout').textContent, /375 px · layout a griglia|375 px · una colonna/);
+  assert.match(frame.getAttribute('srcdoc'), /place-items: center;/);
+  const rng = p.querySelector('[aria-label="Larghezza in pixel"]');
+  H.type(rng, '600');
+  assert.equal(frame.style.width, '600px');
+  H.key(p.querySelector('.gl-frame-handle'), 'ArrowLeft');
+  assert.equal(frame.style.width, '590px');
+  H.type(p.querySelector('[aria-label="row-gap"]'), '30');
+  assert.match(frame.getAttribute('srcdoc'), /gap: 30px 20px;/);
+  H.click(H.button(p, 'Disegna'));
+  assert.equal(p.querySelector('.gl-canvas').hidden, false);
+
   /* copia */
   H.click(H.button(p, 'Copia'));
   await H.waitFor(() => H.state.clip.length, 'copiato');

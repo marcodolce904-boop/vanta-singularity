@@ -25,7 +25,7 @@
     id: 'griglia-css',
     label: 'Griglia CSS',
     create: function () {
-      var st = { s: G.fromPreset('holy-grail'), tracks: true, lang: 'css', base: true, stack: true, drag: null, over: null };
+      var st = { view: 'draw', w: 1024, s: G.fromPreset('holy-grail'), tracks: true, lang: 'css', base: true, stack: true, drag: null, over: null };
 
       var root = h('section', {
         class: 'tab-body gridlab',
@@ -52,6 +52,19 @@
 
       var descr = h('p', { class: 'hint gl-descr' });
       var canvas = h('div', { class: 'gl-canvas', 'aria-label': 'Area di lavoro della griglia' });
+      var viewDraw = h('button', { type: 'button', class: 'btn small', text: 'Disegna' });
+      var viewResp = h('button', { type: 'button', class: 'btn small', text: 'Anteprima responsive' });
+      var frame = h('iframe', { class: 'gl-frame', title: 'Anteprima responsive del layout', sandbox: '' });
+      var frameHandle = h('div', { class: 'gl-frame-handle', tabindex: '0', role: 'slider', 'aria-label': 'Larghezza dell\'anteprima', 'aria-valuemin': '280', 'aria-valuemax': '1440' });
+      var frameWrap = h('div', { class: 'gl-frame-wrap' }, [frame, frameHandle]);
+      var wRange = h('input', { type: 'range', min: '280', max: '1440', step: '1', 'aria-label': 'Larghezza in pixel' });
+      var wOut = h('output', { class: 'gl-val gl-wout', role: 'status' });
+      var wBtns = h('div', { class: 'btn-row gl-widths', role: 'group', 'aria-label': 'Larghezze' });
+      var respBox = h('div', { class: 'gl-resp', hidden: true }, [
+        h('div', { class: 'btn-row' }, [wBtns, wRange, wOut]),
+        h('div', { class: 'gl-frame-area' }, [frameWrap]),
+        h('p', { class: 'hint', text: 'Trascina il bordo destro (o usa lo slider) per ridurre la finestra: sotto i 768 px il layout va su una colonna, se l\'opzione è attiva.' })
+      ]);
       var status = h('p', { class: 'hint gl-status', role: 'status', 'aria-live': 'polite' });
       var trackBox = h('div', { class: 'gl-tracks' });
       var colGap = h('input', { type: 'range', min: '0', max: '48', step: '1', 'aria-label': 'column-gap' });
@@ -67,7 +80,9 @@
           h('div', { class: 'toolbar' }, [h('h2', { class: 'group-title', text: 'Griglia CSS' })]),
           presetRow,
           descr,
+          h('div', { class: 'btn-row gl-views', role: 'group', 'aria-label': 'Vista' }, [viewDraw, viewResp]),
           canvas,
+          respBox,
           status,
           missing,
           trackBox,
@@ -211,6 +226,7 @@
         langCss.setAttribute('aria-pressed', css ? 'true' : 'false');
         langHtml.setAttribute('aria-pressed', css ? 'false' : 'true');
         pre.innerHTML = css ? paintCss(cssText()) : HL.highlight(htmlText(), 'html');
+        renderFrame();
       }
 
       function renderControls() {
@@ -230,12 +246,76 @@
         descr.textContent = p ? p.descr : 'Layout personalizzato.';
       }
 
+      var COLORS = { header: '#9ec5fe', nav: '#a3e0b5', main: '#cdb4f6', aside: '#ffe08a', footer: '#f5a3b0' };
+      function frameDoc() {
+        var colors = Object.keys(COLORS).map(function (k) { return '.layout > .' + k + ' { background: ' + COLORS[k] + '; color: #111111; border-color: #111111; font-weight: 700; }'; }).join('\n');
+        return '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>' +
+          'body{margin:0;padding:12px;font:14px system-ui,sans-serif;box-sizing:border-box}.layout{min-height:300px}\n' +
+          cssText() + colors + '</style></head><body>' + htmlText() + '</body></html>';
+      }
+      function scaleFor(w) {
+        var avail = frameWrap.parentNode.clientWidth;
+        return avail > 0 && w > avail - 14 ? (avail - 14) / w : 1;
+      }
+      function renderFrame() {
+        if (st.view !== 'resp') return;
+        var w = st.w, k = scaleFor(w);
+        frame.style.width = w + 'px';
+        frame.style.transform = k < 1 ? 'scale(' + k + ')' : '';
+        frameWrap.style.width = Math.round(w * k) + 'px';
+        frameWrap.style.height = Math.round(frame.offsetHeight ? frame.offsetHeight * k : 360 * k) + 'px';
+        frame.setAttribute('srcdoc', frameDoc());
+        wRange.value = w;
+        frameHandle.setAttribute('aria-valuenow', w);
+        wOut.textContent = w + ' px · ' + (w < 768 && st.stack ? 'una colonna' : 'layout a griglia');
+        Array.prototype.forEach.call(wBtns.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.w) === String(w) ? 'true' : 'false'); });
+      }
+      function renderView() {
+        var resp = st.view === 'resp';
+        canvas.hidden = resp;
+        respBox.hidden = !resp;
+        viewDraw.setAttribute('aria-pressed', resp ? 'false' : 'true');
+        viewResp.setAttribute('aria-pressed', resp ? 'true' : 'false');
+        renderFrame();
+      }
+      [375, 768, 1024, 1280].forEach(function (w) {
+        var b = h('button', { type: 'button', class: 'btn small', text: String(w), onclick: function () { st.w = w; renderFrame(); } });
+        b.dataset.w = w;
+        wBtns.appendChild(b);
+      });
+      function setW(v) { st.w = Math.max(280, Math.min(1440, Math.round(v))); renderFrame(); }
+      wRange.addEventListener('input', function () { setW(parseInt(wRange.value, 10)); });
+      viewDraw.addEventListener('click', function () { st.view = 'draw'; renderView(); });
+      viewResp.addEventListener('click', function () { st.view = 'resp'; renderView(); });
+      frameHandle.addEventListener('keydown', function (e) {
+        var d = { ArrowLeft: -10, ArrowRight: 10 }[e.key];
+        if (d) { e.preventDefault(); setW(st.w + (e.shiftKey ? d * 5 : d)); }
+      });
+      frameHandle.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        try { frameHandle.setPointerCapture(e.pointerId); } catch (x) { /* non fa nulla */ }
+        var k = scaleFor(st.w), left = frameWrap.getBoundingClientRect().left;
+        frameWrap.classList.add('dragging');
+        function mv(ev) { setW((ev.clientX - left) / k); }
+        function up() {
+          frameWrap.classList.remove('dragging');
+          frameHandle.removeEventListener('pointermove', mv);
+          frameHandle.removeEventListener('pointerup', up);
+          frameHandle.removeEventListener('pointercancel', up);
+        }
+        frameHandle.addEventListener('pointermove', mv);
+        frameHandle.addEventListener('pointerup', up);
+        frameHandle.addEventListener('pointercancel', up);
+      });
+      window.addEventListener('resize', App.debounce(renderFrame, 120));
+
       function renderAll() {
         renderControls();
         renderTracks();
         renderCanvas();
         renderMissing();
         renderCode();
+        renderView();
       }
 
       /* ----- trascinamento ----- */

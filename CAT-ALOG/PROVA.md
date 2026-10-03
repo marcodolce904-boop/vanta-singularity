@@ -30,7 +30,7 @@ Se qualcosa non torna, annota il numero del passo e cosa hai visto: mi basta que
 
 15. **Pagine**: apri «Pagina vetrina (esempio)». *Vedi:* la pagina intera in anteprima; sposta una sezione con ↑ e salva.
 16. In **Pagine** premi **Esporta il sito (kit)…**, scegli una cartella vuota e conferma. *Vedi:* una cartella con `index.html`, `css/`, `js/`, `LEGGIMI.txt`.
-16b. **Griglia CSS**: premi **Magazine**, poi trascina «Nav» sopra «Aside». *Vedi:* i due riquadri si scambiano e nel codice a destra cambiano le righe evidenziate di `grid-template-areas`. Trascina l'angolo in basso a destra di un riquadro per allargarlo; prova anche le frecce e Maiusc+frecce. Cambia una colonna in `200px`, sposta lo slider del gap, premi **center** e poi **Copia**.
+16b. **Griglia CSS**: premi **Magazine**, poi trascina «Nav» sopra «Aside». *Vedi:* i due riquadri si scambiano e nel codice a destra cambiano le righe evidenziate di `grid-template-areas`. Trascina l'angolo in basso a destra di un riquadro per allargarlo; prova anche le frecce e Maiusc+frecce. Premi **Anteprima responsive** e trascina il bordo nero a destra della finestra verso sinistra: sotto i 768 px il layout va su una colonna. Cambia una colonna in `200px`, sposta lo slider del gap, premi **center** e poi **Copia**.
 17. Apri `index.html` dal kit col browser. *Vedi:* la pagina con i suoi colori; restringi la finestra: si adatta.
 18. **Responsive**: restringi la finestra dell'app sotto i 768 px. *Vedi:* sulle voci compare «vale ora» e cambia il punto di rottura in alto.
 19. **Tipografia**: scegli «Baloo 2 + Nunito» e premi **Scrivi nel Root**. *Vedi:* un messaggio con quante variabili cambiano; conferma.
