@@ -473,9 +473,14 @@ function createStore(dataDir) {
     if (same) return;
     const dir = p(kind, id, '_versioni');
     fs.mkdirSync(dir, { recursive: true });
-    let name = stamp();
-    let k = 1;
-    while (fs.existsSync(path.join(dir, name + '.json'))) { name = stamp() + '-' + k; k += 1; }
+    /* nome crescente: se due salvataggi cadono nello stesso millisecondo, il secondo prende il millisecondo dopo */
+    let t = Date.now();
+    const last = fs.readdirSync(dir).filter(function (f) { return f.endsWith('.json'); }).sort().pop();
+    if (last) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})-(\d{3})/.exec(last);
+      if (m) t = Math.max(t, Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6], +m[7]) + 1);
+    }
+    const name = new Date(t).toISOString().replace(/[:.]/g, '-').replace('T', '_').replace('Z', '');
     writeFile(path.join(dir, name + '.json'), JSON.stringify({
       nome: old.nome, descrizione: old.descrizione, tag: old.tag, html: old.html, css: old.css, js: old.js,
       salvato: old.modificato
