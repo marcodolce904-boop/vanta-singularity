@@ -404,3 +404,38 @@ div.asset-big { height: 140px; }
 .sec-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sec-name small { color: var(--ui-muted); }
 .pagine .col-editor { overflow-y: auto; }
+
+/* ---------- editor del codice con colori ---------- */
+
+.code-wrap { flex: 1; min-height: 270px; display: flex; flex-direction: column; gap: 4px; }
+.code-box { position: relative; flex: 1; min-height: 250px; display: flex; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-panel); }
+.code-gutter { flex: none; min-width: 3ch; padding: 6px 8px 6px 6px; overflow: hidden; border-right: 1px solid var(--ui-border); background: var(--ui-code-bg); color: var(--ui-muted); font: 13px/1.5 var(--ui-mono); text-align: right; white-space: pre; user-select: none; }
+.code-stack { position: relative; flex: 1; min-width: 0; }
+.code-stack pre.code-hl, .code-stack textarea.code {
+  position: absolute; inset: 0; margin: 0; padding: 6px 8px; border: 0; border-radius: 0;
+  font: 13px/1.5 var(--ui-mono); letter-spacing: 0; tab-size: 2; white-space: pre; word-wrap: normal; overflow: auto;
+}
+.code-stack pre.code-hl { overflow: hidden; pointer-events: none; color: var(--ui-text); }
+.code-stack textarea.code { resize: none; background: transparent; color: transparent; caret-color: var(--ui-text); min-height: 0; flex: none; }
+.code-stack textarea.code::selection { background: rgb(47 111 78 / 0.35); color: transparent; }
+.code-box.no-hl .code-gutter, .code-box.no-hl pre.code-hl { display: none; }
+.code-box.no-hl textarea.code { color: var(--ui-text); }
+.code-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-muted); font-size: 12px; }
+.hl-comment { color: #6b7a6f; font-style: italic; }
+.hl-string { color: #9a4d00; }
+.hl-keyword { color: #8a2be2; }
+.hl-number { color: #b3261e; }
+.hl-prop { color: #1f6f8b; }
+.hl-attr { color: #1f6f8b; }
+.hl-tag { color: #1f5f46; font-weight: 500; }
+.hl-fn { color: #7a5c00; }
+.hl-color { padding-bottom: 1px; }
+@media (prefers-color-scheme: dark) {
+  .hl-comment { color: #8a9a8e; }
+  .hl-string { color: #f0b072; }
+  .hl-keyword { color: #c9a0ff; }
+  .hl-number { color: #ff9a92; }
+  .hl-prop, .hl-attr { color: #7fcbe6; }
+  .hl-tag { color: #8ad1a8; }
+  .hl-fn { color: #e8cf7a; }
+}

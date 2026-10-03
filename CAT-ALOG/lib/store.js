@@ -173,11 +173,40 @@ function createStore(dataDir) {
     return out;
   }
 
+  /* Il file toccato più di recente nella cartella dell'elemento (per accorgersi di modifiche fatte fuori dall'app). */
+  function stampOf(dir) {
+    let m = 0;
+    ['markup.html', 'style.css', 'script.js', 'meta.json'].forEach(function (f) {
+      try {
+        m = Math.max(m, Math.round(fs.statSync(path.join(dir, f)).mtimeMs));
+      } catch (e) { /* file non presente */ }
+    });
+    return m;
+  }
+
+  function itemStamp(kind, id) {
+    const dir = itemDir(kind, id);
+    return { mtime: fs.existsSync(dir) ? stampOf(dir) : 0 };
+  }
+
+  /* Cartella e file di un elemento, per aprirli in un altro editor. */
+  function itemFiles(kind, id) {
+    const dir = itemDir(kind, id);
+    if (!fs.existsSync(dir)) throw new Error('Elemento non trovato: ' + id);
+    const files = ['markup.html', 'style.css'].concat(KINDS[kind].js ? ['script.js'] : []).map(function (f) {
+      const full = path.join(dir, f);
+      if (!fs.existsSync(full)) writeFile(full, '');
+      return full;
+    });
+    return { dir: dir, files: files };
+  }
+
   function get(kind, id) {
     const dir = itemDir(kind, id);
     if (!fs.existsSync(dir)) throw new Error('Elemento non trovato: ' + id);
     const meta = readJsonSafe(path.join(dir, 'meta.json'), null);
     return Object.assign(summary(id, meta), {
+      mtime: stampOf(dir),
       creato: S.str(meta && meta.creato),
       html: readText(path.join(dir, 'markup.html')),
       css: readText(path.join(dir, 'style.css')),
@@ -999,6 +1028,8 @@ function createStore(dataDir) {
     setSettings: setSettings,
     list: list,
     get: get,
+    itemStamp: itemStamp,
+    itemFiles: itemFiles,
     save: save,
     duplicate: duplicate,
     remove: remove,

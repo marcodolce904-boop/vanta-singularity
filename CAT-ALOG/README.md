@@ -45,6 +45,13 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
 
+## Editor del codice e VS Code
+
+- **Colori nel codice** (HTML, CSS, JavaScript; anche CSS e JS dentro `<style>` e `<script>`), **numeri di riga** e una sottolineatura con il colore vero sotto i valori `#rrggbb`. Si spegne con la casella «Colori e numeri di riga» (la scelta resta). Niente librerie: è una colorazione scritta per l'app, sovrapposta al campo di testo con le stesse misure; oltre 200.000 caratteri si spegne da sola.
+- **Invio** mantiene l'indentazione (e la aumenta dopo `{`, `[`, `(` o un tag aperto; tra `{}` apre una riga vuota). **Tab** indenta anche più righe selezionate, **Maiusc+Tab** toglie l'indentazione, **Ctrl+/** commenta o scommenta (`//` in JS, `/* */` in CSS, `<!-- -->` in HTML). Ctrl+Z continua a funzionare. Per uscire dal campo con la tastiera: **Esc**, poi Tab.
+- **Apri in VS Code** (nell'editor di ogni elemento): apre la cartella e i file veri (`markup.html`, `style.css`, `script.js`). Se VS Code non risponde al comando `code`, apre la cartella e ti dice come installarlo (in VS Code: Ctrl+Maiusc+P → «Shell Command: Install 'code' command in PATH»). Il comando si cambia da **Impostazioni** (per esempio `code-insiders`; sono ammessi solo lettere, numeri, spazi e `. / \ : + -`).
+- **Si aggiorna da sola**: quando torni nella finestra dell'app, se un file è cambiato fuori (per esempio salvato in VS Code) l'elemento si ricarica. Se nell'app hai modifiche non salvate, ti chiede se tenere le tue o ricaricare dal file.
+
 ## Pagine e kit del sito
 
 - **Pagine**: scegli sezioni da Strutture, Componenti, Animazioni e Interazioni, mettile nell'ordine che vuoi (↑ ↓) e vedi la pagina intera nell'anteprima (con le stesse opzioni: larghezze, ruota, scuro, griglia). Ogni sezione si prende **dalla versione salvata** dell'elemento: se la modifichi, la pagina la prende aggiornata. Due pagine di esempio già pronte.

@@ -30,6 +30,7 @@ function make(over) {
       openPath: async (p) => log.opened.push(p),
       chooseOpenFile: async () => null,
       chooseOpenFiles: async () => [],
+      openInEditor: async (dir, files, cmd) => { log.editor = { dir, files, cmd }; return { aperto: true, ripiego: false, messaggio: '' }; },
       renderPng: async (doc, widths) => widths.map((width) => ({ width, png: Buffer.from('PNG' + width) }))
     },
     over || {}

@@ -16,7 +16,7 @@
   var tabsNav = document.getElementById('tabs');
   var main = document.getElementById('main');
 
-  App.config = { dataDir: '', prefisso: 'cat' };
+  App.config = { dataDir: '', prefisso: 'cat', editor: 'code' };
   App.tabs = tabs;
 
   function anyDirty() {
@@ -193,6 +193,13 @@
         autocomplete: 'off',
         'aria-label': 'Prefisso del file CSS delle classi'
       });
+      var editorInput = h('input', {
+        type: 'text',
+        value: App.config.editor || 'code',
+        spellcheck: 'false',
+        autocomplete: 'off',
+        'aria-label': 'Comando dell\'editor'
+      });
       var msg = h('p', { class: 'muted', role: 'status' });
 
       function say(text, isError) {
@@ -220,7 +227,7 @@
               Promise.resolve(window.api.chooseDataDir())
                 .then(function (r) {
                   if (r.annullato) return;
-                  App.config = { dataDir: r.dataDir, prefisso: r.prefisso };
+                  App.config = { dataDir: r.dataDir, prefisso: r.prefisso, editor: r.editor };
                   pathEl.textContent = r.dataDir;
                   prefixInput.value = r.prefisso;
                   say('Cartella cambiata. Ora l\'app usa i dati di questa cartella.', false);
@@ -271,6 +278,21 @@
                   return reloadAll();
                 });
               }).catch(function (e) { say(App.cleanError(e), true); });
+            })
+          ]),
+          h('label', { class: 'field' }, [
+            h('span', { text: 'Programma per «Apri in VS Code» (comando)' }),
+            editorInput
+          ]),
+          h('div', { class: 'btn-row' }, [
+            small('Salva comando', function () {
+              Promise.resolve(window.api.setEditor(editorInput.value))
+                .then(function (r) {
+                  App.config = r;
+                  editorInput.value = r.editor;
+                  say('Comando salvato: ' + r.editor, false);
+                })
+                .catch(function (e) { say(App.cleanError(e), true); });
             })
           ]),
           msg,

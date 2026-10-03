@@ -22,38 +22,9 @@
     return parts.join('\n\n') + '\n';
   }
 
-  /* Tab inserisce due spazi; Esc e poi Tab (o Maiusc+Tab) fa uscire dal campo. */
-  function codeKeys(ta) {
-    var escaped = false;
-    ta.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        escaped = true;
-        return;
-      }
-      if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
-        escaped = false;
-        return;
-      }
-      if (escaped) {
-        escaped = false;
-        return;
-      }
-      e.preventDefault();
-      var ok = false;
-      try {
-        ok = document.execCommand('insertText', false, '  ');
-      } catch (x) {
-        ok = false;
-      }
-      if (!ok) {
-        ta.setRangeText('  ', ta.selectionStart, ta.selectionEnd, 'end');
-        ta.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    });
-  }
-
   function createItemTab(kind, cfg) {
     var hasJs = !!cfg.hasJs;
+    var tabCheck = null;
     var st = {
       items: [],
       filter: '',
@@ -118,7 +89,8 @@
       });
       codeTabs.appendChild(codeButtons[which]);
     });
-    codeKeys(code);
+    App.codeKeys(code, function () { return st.active; });
+    var codeBox = App.makeCodeBox(code, function () { return st.active; });
 
     function copyBtn(label, what) {
       return h('button', {
@@ -176,6 +148,7 @@
     var expBtn = h('button', { type: 'button', class: 'btn', text: 'Esporta cartella' });
     var pngBtn = h('button', { type: 'button', class: 'btn', text: 'Esporta PNG', title: 'Tre immagini a 375, 768 e 1280 px' });
     var verBtn = h('button', { type: 'button', class: 'btn', text: 'Versioni…', title: 'Torna a una versione salvata prima' });
+    var vscBtn = h('button', { type: 'button', class: 'btn', text: 'Apri in VS Code', title: 'Apre i file veri in VS Code; quando torni qui l\'app si aggiorna da sola' });
     var delBtn = h('button', { type: 'button', class: 'btn danger', text: 'Elimina' });
 
     root.appendChild(
@@ -185,13 +158,13 @@
         field('Descrizione', fDesc),
         field('Etichette (separate da virgola)', fTags),
         codeTabs,
-        code,
-        h('p', { class: 'hint', text: 'Tab inserisce 2 spazi. Per uscire dal campo: Esc, poi Tab.' }),
+        codeBox.el,
+        h('p', { class: 'hint', text: 'Tab indenta (anche più righe), Maiusc+Tab toglie, Ctrl+/ commenta. Per uscire dal campo: Esc, poi Tab.' }),
         qualityBox,
         h('div', { class: 'group-label', text: 'Copia negli appunti' }),
         copyRow,
         h('div', { class: 'group-label', text: 'Altre azioni' }),
-        h('div', { class: 'btn-row' }, [dupBtn, expBtn, pngBtn, verBtn, delBtn])
+        h('div', { class: 'btn-row' }, [dupBtn, expBtn, pngBtn, verBtn, vscBtn, delBtn])
       ])
     );
 
@@ -226,6 +199,7 @@
       });
       code.setAttribute('aria-label', 'Codice ' + which.toUpperCase());
       code.value = st.draft ? st.draft[which] : '';
+      codeBox.refresh();
     }
 
     function previewDoc() {
@@ -534,6 +508,64 @@
 
     addBtn.addEventListener('click', create);
     importBtn.addEventListener('click', importAny);
+
+    /* Apri in VS Code: i file sono quelli veri; al ritorno nell'app si ricaricano se sono cambiati. */
+    function openExternal() {
+      if (!st.id) return Promise.resolve();
+      var go = isDirty()
+        ? App.askChoice({
+            title: 'Ci sono modifiche non salvate',
+            message: 'VS Code apre i file salvati. Salvo prima?',
+            choices: [
+              { value: 'cancel', label: 'Annulla' },
+              { value: 'open', label: 'Apri senza salvare' },
+              { value: 'save', label: 'Salva e apri', kind: 'primary' }
+            ]
+          }).then(function (v) {
+            if (v === 'save') return save().then(function (ok) { return ok; });
+            return v === 'open';
+          })
+        : Promise.resolve(true);
+      return go.then(function (ok) {
+        if (!ok) return;
+        return App.run(function () { return window.api.openInEditor(kind, st.id); }).then(function (r) {
+          if (!r) return;
+          App.toast(r.ripiego ? r.messaggio : 'Aperto in VS Code. Salva lì e torna qui: l\'app si aggiorna da sola.', r.ripiego);
+        });
+      });
+    }
+    vscBtn.addEventListener('click', openExternal);
+
+    /* Tornando nell'app (o nella finestra) controlla se i file sono stati cambiati da fuori. */
+    var checking = false;
+    function checkExternal() {
+      if (checking || root.hidden || !st.id || !st.saved) return Promise.resolve();
+      checking = true;
+      var id = st.id;
+      return Promise.resolve(window.api.itemStamp(kind, id)).then(function (stamp) {
+        if (id !== st.id || !stamp || !stamp.mtime || stamp.mtime === st.saved.mtime || stamp.mtime === st.ignoreStamp) return;
+        return Promise.resolve(window.api.get(kind, id)).then(function (fresh) {
+          if (id !== st.id) return;
+          if (!isDirty()) {
+            load(fresh);
+            return refreshList().then(function () { App.toast('Aggiornato: i file sono stati modificati fuori dall\'app'); });
+          }
+          return App.askChoice({
+            title: 'Il file è cambiato fuori dall\'app',
+            message: 'Hai anche modifiche non salvate qui. Cosa tengo?',
+            choices: [
+              { value: 'mine', label: 'Tengo le mie' },
+              { value: 'file', label: 'Ricarico dal file', kind: 'danger' }
+            ]
+          }).then(function (v) {
+            if (v === 'file') load(fresh);
+            else st.ignoreStamp = stamp.mtime;
+          });
+        });
+      }).catch(function () { /* elemento sparito o file illeggibile: non disturbo */ }).then(function () { checking = false; });
+    }
+    window.addEventListener('focus', checkExternal);
+    tabCheck = checkExternal;
     pngBtn.addEventListener('click', function () {
       if (!st.draft) return;
       App.run(function () { return window.api.exportPng(kind, payload()); }).then(function (r) {
@@ -655,6 +687,7 @@
       discard: discard,
       reset: reset,
       select: select,
+      checkExternal: function () { return tabCheck ? tabCheck() : Promise.resolve(); },
       kind: kind,
       state: st
     };

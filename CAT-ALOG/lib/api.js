@@ -48,6 +48,9 @@ const API_NAMES = [
   'getKit',
   'saveKit',
   'exportKit',
+  'itemStamp',
+  'openInEditor',
+  'setEditor',
   'getSeo',
   'saveSeo',
   'saveTextFile',
@@ -102,7 +105,12 @@ function createApi(opzioni) {
   writeConfig(config);
 
   function currentConfig() {
-    return { dataDir: store.dataDir, prefisso: store.getSettings().prefisso };
+    return { dataDir: store.dataDir, prefisso: store.getSettings().prefisso, editor: validEditor(config.editor) ? config.editor : 'code' };
+  }
+
+  /* Il comando dell'editor si usa anche con una shell (Windows): solo caratteri semplici, niente & | ; < > ` $ ( ). */
+  function validEditor(cmd) {
+    return typeof cmd === 'string' && /^[A-Za-z0-9_ .\\/:+-]{1,200}$/.test(cmd.trim()) && cmd.trim().length > 0;
   }
 
   const api = {
@@ -232,6 +240,22 @@ function createApi(opzioni) {
       const dest = await ui.chooseFolder('Dove esporto il sito?');
       if (!dest) return { annullato: true };
       return Object.assign({ annullato: false }, store.exportKit(data, dest));
+    },
+
+    itemStamp: async function (kind, id) { return store.itemStamp(kind, id); },
+
+    openInEditor: async function (kind, id) {
+      const f = store.itemFiles(kind, id);
+      const cmd = validEditor(config.editor) ? config.editor.trim() : 'code';
+      return ui.openInEditor(f.dir, f.files, cmd);
+    },
+
+    setEditor: async function (cmd) {
+      const c = S.str(cmd).trim() || 'code';
+      if (!validEditor(c)) throw new Error('Comando non valido: usa solo lettere, numeri, spazi e i simboli . / \\ : + -');
+      config.editor = c;
+      writeConfig(config);
+      return currentConfig();
     },
 
     getSeo: async function () { return store.getSeo(); },

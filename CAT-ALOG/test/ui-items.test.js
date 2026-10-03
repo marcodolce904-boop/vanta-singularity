@@ -276,9 +276,50 @@ test('il campo del codice: Tab mette due spazi, Esc poi Tab esce', async (t) => 
   const ev2 = new H.w.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
   P.code.dispatchEvent(ev2);
   assert.equal(ev2.defaultPrevented, false, 'dopo Esc il Tab sposta il focus');
+  // dopo Esc anche Maiusc+Tab esce dal campo; senza Esc, Maiusc+Tab toglie l'indentazione
+  H.key(P.code, 'Escape');
   const ev3 = new H.w.KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
   P.code.dispatchEvent(ev3);
-  assert.equal(ev3.defaultPrevented, false, 'Maiusc+Tab sposta sempre il focus');
+  assert.equal(ev3.defaultPrevented, false, 'Esc poi Maiusc+Tab sposta il focus');
+  P.code.value = '  ab';
+  P.code.setSelectionRange(3, 3);
+  const ev4 = new H.w.KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+  P.code.dispatchEvent(ev4);
+  assert.equal(ev4.defaultPrevented, true);
+  assert.equal(P.code.value, 'ab', 'Maiusc+Tab toglie due spazi');
+});
+
+test('editor: colori, numeri di riga, invio con indentazione e Ctrl+/', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  const P = await open(H, 'strutture', 'Due colonne');
+  const box = P.panel.querySelector('.code-box');
+  assert.ok(box && box.querySelector('.code-hl') && box.querySelector('.code-gutter'));
+  H.click(P.btn('CSS'));
+  assert.match(box.querySelector('.code-hl').innerHTML, /<span class="hl-prop">display<\/span>/);
+  assert.ok(box.querySelector('.code-gutter').textContent.split('\n').filter(Boolean).length >= 3);
+
+  P.code.value = '.a {';
+  P.code.setSelectionRange(4, 4);
+  const enter = new H.w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+  P.code.dispatchEvent(enter);
+  assert.equal(enter.defaultPrevented, true);
+  assert.equal(P.code.value, '.a {\n  ');
+  await H.waitFor(() => /hl-/.test(box.querySelector('.code-hl').innerHTML), 'colori aggiornati');
+
+  P.code.value = 'x();';
+  P.code.setSelectionRange(0, 0);
+  H.click(P.btn('HTML'));
+  P.code.value = '<p>x</p>';
+  P.code.setSelectionRange(0, 0);
+  P.code.dispatchEvent(new H.w.KeyboardEvent('keydown', { key: '/', ctrlKey: true, bubbles: true, cancelable: true }));
+  assert.equal(P.code.value, '<!-- <p>x</p> -->');
+
+  const chk = P.panel.querySelector('.code-toggle input');
+  chk.checked = false;
+  chk.dispatchEvent(new H.w.Event('change', { bubbles: true }));
+  assert.ok(box.classList.contains('no-hl'));
+  assert.deepEqual(H.state.errors, []);
 });
 
 test('anteprima: larghezze e uso di root e classi', async (t) => {
@@ -396,5 +437,52 @@ test('versioni: dopo due salvataggi si può ricaricare quella vecchia nell\'edit
   await H.noDialog();
   await H.waitFor(() => P.code.value === originale, 'versione caricata');
   assert.match(P.status(), /Modifiche non salvate/);
+  assert.deepEqual(H.state.errors, []);
+});
+
+test('Apri in VS Code e ricarica quando i file cambiano fuori dall\'app', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  const P = await open(H, 'strutture', 'Due colonne');
+  H.click(P.btn('Apri in VS Code'));
+  await H.waitFor(() => H.state.editor, 'editor avviato');
+  assert.equal(H.state.editor.cmd, 'code');
+  assert.ok(H.state.editor.dir.endsWith('due-colonne-50-50'));
+  assert.deepEqual(H.state.editor.files.map((f) => path.basename(f)), ['markup.html', 'style.css']);
+  assert.match(H.toast(), /Aperto in VS Code/);
+
+  // il file viene cambiato da fuori
+  const file = path.join(H.dataDir, 'strutture', 'due-colonne-50-50', 'markup.html');
+  fs.writeFileSync(file, '<p>MODIFICATO DA FUORI</p>');
+  const later = new Date(Date.now() + 5000);
+  fs.utimesSync(file, later, later);
+  H.w.dispatchEvent(new H.w.Event('focus'));
+  await H.waitFor(() => P.code.value === '<p>MODIFICATO DA FUORI</p>', 'ricaricato');
+  assert.equal(P.status(), 'Tutto salvato');
+  assert.match(H.toast(), /modificati fuori/);
+
+  // con modifiche non salvate chiede cosa tenere
+  H.type(P.code, '<p>MIA</p>');
+  const later2 = new Date(Date.now() + 9000);
+  fs.writeFileSync(file, '<p>ANCORA DA FUORI</p>');
+  fs.utimesSync(file, later2, later2);
+  H.w.dispatchEvent(new H.w.Event('focus'));
+  await H.dialog();
+  await H.answer('Tengo le mie');
+  assert.equal(P.code.value, '<p>MIA</p>');
+  H.w.dispatchEvent(new H.w.Event('focus'));
+  await H.sleep(80);
+  assert.equal(H.d.querySelector('dialog.modal'), null, 'non richiede di nuovo la stessa modifica');
+
+  // impostazioni: comando dell'editor
+  H.click(H.d.getElementById('btn-settings'));
+  const dlg = await H.dialog();
+  const input = dlg.querySelector('input[aria-label="Comando dell\'editor"]');
+  H.type(input, 'code-insiders');
+  H.click(H.button(dlg, 'Salva comando'));
+  await H.waitFor(() => /Comando salvato: code-insiders/.test(dlg.textContent), 'comando salvato');
+  H.type(input, 'code; rm -rf /');
+  H.click(H.button(dlg, 'Salva comando'));
+  await H.waitFor(() => /Comando non valido/.test(dlg.textContent), 'comando rifiutato');
   assert.deepEqual(H.state.errors, []);
 });

@@ -2,6 +2,7 @@
 
 const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
 const { createApi, API_NAMES } = require('./lib/api');
 
 let win = null;
@@ -19,6 +20,37 @@ function makeUi() {
     chooseSaveFile: async function (nome, filtri) {
       const r = await dialog.showSaveDialog(win, { defaultPath: nome, filters: filtri });
       return r.canceled || !r.filePath ? null : r.filePath;
+    },
+    /* Apre la cartella dell'elemento e i suoi file in un altro editor (di solito VS Code, comando «code»). */
+    openInEditor: async function (dir, files, cmd) {
+      return new Promise(function (resolve) {
+        const win32 = process.platform === 'win32';
+        let done = false;
+        function finish(r) {
+          if (!done) {
+            done = true;
+            resolve(r);
+          }
+        }
+        try {
+          const quote = function (x) { return win32 ? '"' + x + '"' : x; };
+          const args = ['--reuse-window', quote(dir)].concat(files.map(quote));
+          const child = spawn(cmd, args, { shell: win32, detached: true, stdio: 'ignore', windowsHide: true });
+          child.on('error', function () {
+            shell.openPath(dir).then(function () {
+              finish({ aperto: false, ripiego: true, messaggio: 'Non trovo «' + cmd + '»: ho aperto la cartella. Per VS Code serve il comando «code» (VS Code: Ctrl+Maiusc+P, poi «Shell Command: Install \'code\' command in PATH»).' });
+            });
+          });
+          child.on('spawn', function () {
+            child.unref();
+            finish({ aperto: true, ripiego: false, messaggio: '' });
+          });
+        } catch (e) {
+          shell.openPath(dir).then(function () {
+            finish({ aperto: false, ripiego: true, messaggio: 'Non riesco ad avviare «' + cmd + '»: ho aperto la cartella.' });
+          });
+        }
+      });
     },
     chooseOpenFile: async function (titolo, filtri) {
       const r = await dialog.showOpenDialog(win, { title: titolo, properties: ['openFile'], filters: filtri });

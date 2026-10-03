@@ -34,6 +34,7 @@ async function boot() {
     chooseFolder: async () => state.folder,
     chooseSaveFile: async () => state.saveFile,
     chooseOpenFiles: async () => state.files,
+    openInEditor: async (dir, files, cmd) => { state.editor = { dir, files, cmd }; return { aperto: true, ripiego: false, messaggio: '' }; },
     chooseOpenFile: async () => state.files[0] || null,
     copy: (t) => state.clip.push(t),
     openPath: async (p) => state.opened.push(p)
