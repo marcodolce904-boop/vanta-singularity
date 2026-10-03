@@ -1,0 +1,479 @@
+/* Schede «Strutture» e «Componenti»: elenco, anteprima, editor HTML/CSS/JS. */
+(function () {
+  'use strict';
+
+  var App = window.CatalogoApp;
+  var S = App.S;
+  var h = App.h;
+
+  function norm(t) {
+    return S.str(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  }
+
+  function field(label, input) {
+    return h('label', { class: 'field' }, [h('span', { text: label }), input]);
+  }
+
+  function allSnippet(d) {
+    var parts = [];
+    if (d.css.trim()) parts.push('<style>\n' + d.css.trim() + '\n</style>');
+    if (d.html.trim()) parts.push(d.html.trim());
+    if (d.js.trim()) parts.push('<script>\n' + d.js.trim() + '\n</script>');
+    return parts.join('\n\n') + '\n';
+  }
+
+  /* Tab inserisce due spazi; Esc e poi Tab (o Maiusc+Tab) fa uscire dal campo. */
+  function codeKeys(ta) {
+    var escaped = false;
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        escaped = true;
+        return;
+      }
+      if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+        escaped = false;
+        return;
+      }
+      if (escaped) {
+        escaped = false;
+        return;
+      }
+      e.preventDefault();
+      var ok = false;
+      try {
+        ok = document.execCommand('insertText', false, '  ');
+      } catch (x) {
+        ok = false;
+      }
+      if (!ok) {
+        ta.setRangeText('  ', ta.selectionStart, ta.selectionEnd, 'end');
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+  function createItemTab(kind, cfg) {
+    var hasJs = !!cfg.hasJs;
+    var st = {
+      items: [],
+      filter: '',
+      id: null,
+      draft: null,
+      saved: null,
+      snapshot: '',
+      active: 'html',
+      withGlobal: true,
+      global: null
+    };
+
+    var root = h('section', {
+      class: 'tab-body items no-selection',
+      role: 'tabpanel',
+      id: 'panel-' + kind,
+      'aria-label': cfg.label,
+      hidden: true
+    });
+
+    /* ----- colonna elenco ----- */
+    var search = h('input', { type: 'search', placeholder: 'Cerca…', 'aria-label': 'Cerca in ' + cfg.label });
+    var addBtn = h('button', { type: 'button', class: 'btn primary', text: '+ Nuovo' });
+    var listEl = h('ul', { class: 'list' });
+    root.appendChild(h('div', { class: 'col-list' }, [h('div', { class: 'list-head' }, [search, addBtn]), listEl]));
+
+    /* ----- colonna anteprima ----- */
+    var globalChk = h('input', { type: 'checkbox', checked: true });
+    var preview = App.makePreview({
+      title: 'Anteprima di ' + cfg.label,
+      getDoc: previewDoc,
+      extra: [h('label', null, [globalChk, 'Usa root e classi'])]
+    });
+    root.appendChild(h('div', { class: 'col-main' }, [preview.el]));
+
+    /* ----- colonna editor ----- */
+    var status = h('span', { class: 'status', role: 'status' });
+    var saveBtn = h('button', { type: 'button', class: 'btn primary', text: 'Salva' });
+    var revertBtn = h('button', { type: 'button', class: 'btn', text: 'Ripristina' });
+    var fNome = h('input', { type: 'text' });
+    var fDesc = h('input', { type: 'text' });
+    var fTags = h('input', { type: 'text', placeholder: 'flex, card, griglia' });
+    var code = h('textarea', { class: 'code', spellcheck: 'false', wrap: 'off' });
+    var codeButtons = {};
+    var codeTabs = h('div', { class: 'code-tabs', role: 'group', 'aria-label': 'Quale codice modificare' });
+    (hasJs ? ['html', 'css', 'js'] : ['html', 'css']).forEach(function (which) {
+      codeButtons[which] = h('button', {
+        type: 'button',
+        class: 'btn small',
+        'aria-pressed': 'false',
+        text: which.toUpperCase(),
+        onclick: function () {
+          setActive(which);
+          code.focus();
+        }
+      });
+      codeTabs.appendChild(codeButtons[which]);
+    });
+    codeKeys(code);
+
+    function copyBtn(label, what) {
+      return h('button', {
+        type: 'button',
+        class: 'btn small',
+        text: label,
+        onclick: function () {
+          if (!st.draft) return;
+          App.copyText(what === 'all' ? allSnippet(st.draft) : st.draft[what], what === 'all' ? 'Tutto' : what.toUpperCase());
+        }
+      });
+    }
+
+    var copyRow = h('div', { class: 'btn-row' }, [copyBtn('Copia HTML', 'html'), copyBtn('Copia CSS', 'css')]);
+    if (hasJs) copyRow.appendChild(copyBtn('Copia JS', 'js'));
+    copyRow.appendChild(copyBtn('Copia tutto', 'all'));
+
+    var dupBtn = h('button', { type: 'button', class: 'btn', text: 'Duplica' });
+    var expBtn = h('button', { type: 'button', class: 'btn', text: 'Esporta cartella' });
+    var delBtn = h('button', { type: 'button', class: 'btn danger', text: 'Elimina' });
+
+    root.appendChild(
+      h('div', { class: 'col-editor' }, [
+        h('div', { class: 'toolbar' }, [status, h('span', { class: 'spacer' }), revertBtn, saveBtn]),
+        field('Nome', fNome),
+        field('Descrizione', fDesc),
+        field('Etichette (separate da virgola)', fTags),
+        codeTabs,
+        code,
+        h('p', { class: 'hint', text: 'Tab inserisce 2 spazi. Per uscire dal campo: Esc, poi Tab.' }),
+        h('div', { class: 'group-label', text: 'Copia negli appunti' }),
+        copyRow,
+        h('div', { class: 'group-label', text: 'Altre azioni' }),
+        h('div', { class: 'btn-row' }, [dupBtn, expBtn, delBtn])
+      ])
+    );
+
+    /* ----- stato del form ----- */
+
+    function payload() {
+      return {
+        nome: fNome.value,
+        descrizione: fDesc.value,
+        tag: fTags.value,
+        html: st.draft.html,
+        css: st.draft.css,
+        js: hasJs ? st.draft.js : ''
+      };
+    }
+
+    function isDirty() {
+      return !!st.draft && JSON.stringify(payload()) !== st.snapshot;
+    }
+
+    function updateStatus() {
+      var dirty = isDirty();
+      status.textContent = dirty ? '● Modifiche non salvate' : 'Tutto salvato';
+      status.className = 'status' + (dirty ? ' dirty' : '');
+    }
+
+    function setActive(which) {
+      st.active = which;
+      Object.keys(codeButtons).forEach(function (k) {
+        codeButtons[k].setAttribute('aria-pressed', String(k === which));
+      });
+      code.setAttribute('aria-label', 'Codice ' + which.toUpperCase());
+      code.value = st.draft ? st.draft[which] : '';
+    }
+
+    function previewDoc() {
+      var g = st.withGlobal && st.global ? st.global : {};
+      return S.buildPreviewDoc({
+        html: st.draft.html,
+        css: st.draft.css,
+        js: hasJs ? st.draft.js : '',
+        rootCss: g.rootCss,
+        classiCss: g.classiCss
+      });
+    }
+
+    var refreshSoon = App.debounce(function () {
+      if (st.draft) preview.refresh();
+    }, 250);
+
+    function load(o) {
+      st.id = o.id;
+      st.saved = o;
+      st.draft = { html: o.html, css: o.css, js: o.js };
+      fNome.value = o.nome;
+      fDesc.value = o.descrizione;
+      fTags.value = (o.tag || []).join(', ');
+      setActive(hasJs || st.active !== 'js' ? st.active : 'html');
+      st.snapshot = JSON.stringify(payload());
+      root.classList.remove('no-selection');
+      updateStatus();
+      renderList();
+      refreshSoon.cancel();
+      preview.refresh();
+    }
+
+    function onEdit(affectsPreview) {
+      updateStatus();
+      if (affectsPreview) refreshSoon();
+    }
+
+    /* ----- elenco ----- */
+
+    function renderList() {
+      var q = norm(st.filter);
+      var shown = st.items.filter(function (it) {
+        return !q || norm(it.nome + ' ' + it.descrizione + ' ' + it.tag.join(' ')).indexOf(q) !== -1;
+      });
+      listEl.textContent = '';
+      if (!shown.length) {
+        listEl.appendChild(
+          h('li', { class: 'empty', text: st.items.length ? 'Nessun risultato.' : 'Ancora vuoto. Premi «+ Nuovo».' })
+        );
+        return;
+      }
+      shown.forEach(function (it) {
+        listEl.appendChild(
+          h('li', null, [
+            h(
+              'button',
+              {
+                type: 'button',
+                class: 'list-btn',
+                'aria-current': it.id === st.id ? 'true' : null,
+                onclick: function () {
+                  select(it.id);
+                }
+              },
+              [it.nome, it.descrizione ? h('small', { text: it.descrizione }) : null]
+            )
+          ])
+        );
+      });
+    }
+
+    function refreshList() {
+      return App.run(function () {
+        return window.api.list(kind);
+      }).then(function (items) {
+        if (items) {
+          st.items = items;
+          renderList();
+        }
+      });
+    }
+
+    function loadFromDisk(id) {
+      return App.run(function () {
+        return window.api.get(kind, id);
+      }).then(function (o) {
+        if (o) load(o);
+        return !!o;
+      });
+    }
+
+    function select(id) {
+      if (id === st.id) return Promise.resolve();
+      return App.guardDirty(tab).then(function (ok) {
+        if (ok) return loadFromDisk(id);
+      });
+    }
+
+    /* ----- azioni ----- */
+
+    function create() {
+      return App.guardDirty(tab)
+        .then(function (ok) {
+          if (!ok) return null;
+          return App.askForm({
+            title: 'Nuovo elemento in «' + cfg.label + '»',
+            fields: [{ name: 'nome', label: 'Nome', value: '' }],
+            okLabel: 'Crea',
+            validate: function (v) {
+              return v.nome.trim() ? null : 'Scrivi un nome';
+            }
+          });
+        })
+        .then(function (v) {
+          if (!v) return;
+          return App.run(function () {
+            return window.api.save(kind, null, { nome: v.nome, descrizione: '', tag: [], html: '', css: '', js: '' });
+          }).then(function (o) {
+            if (!o) return;
+            st.filter = '';
+            search.value = '';
+            return refreshList().then(function () {
+              load(o);
+              App.toast('Creato «' + o.nome + '»');
+              code.focus();
+            });
+          });
+        });
+    }
+
+    function save() {
+      if (!st.draft) return Promise.resolve(true);
+      return App.run(function () {
+        return window.api.save(kind, st.id, payload());
+      }).then(function (o) {
+        if (!o) return false;
+        load(o);
+        return refreshList().then(function () {
+          App.toast('Salvato');
+          return true;
+        });
+      });
+    }
+
+    function discard() {
+      if (st.saved) load(st.saved);
+    }
+
+    function revert() {
+      if (!isDirty()) {
+        App.toast('Non ci sono modifiche da annullare');
+        return;
+      }
+      App.askConfirm({
+        title: 'Annullare le modifiche?',
+        message: 'Torno all\'ultima versione salvata di «' + st.saved.nome + '».',
+        okLabel: 'Annulla le modifiche',
+        danger: true
+      }).then(function (yes) {
+        if (yes) discard();
+      });
+    }
+
+    function duplicate() {
+      if (!st.id) return;
+      App.guardDirty(tab).then(function (ok) {
+        if (!ok) return;
+        return App.run(function () {
+          return window.api.duplicate(kind, st.id);
+        }).then(function (o) {
+          if (!o) return;
+          return refreshList().then(function () {
+            load(o);
+            App.toast('Creato «' + o.nome + '»');
+          });
+        });
+      });
+    }
+
+    function remove() {
+      if (!st.id) return;
+      App.askConfirm({
+        title: 'Eliminare «' + st.saved.nome + '»?',
+        message: 'La cartella viene spostata in «_cestino», dentro la cartella dei dati. Puoi recuperarla a mano.',
+        okLabel: 'Sposta nel cestino',
+        danger: true
+      }).then(function (yes) {
+        if (!yes) return;
+        return App.run(function () {
+          return window.api.remove(kind, st.id);
+        }).then(function (r) {
+          if (!r) return;
+          st.id = null;
+          st.draft = null;
+          st.saved = null;
+          st.snapshot = '';
+          root.classList.add('no-selection');
+          App.toast('Spostato nel cestino');
+          return refreshList();
+        });
+      });
+    }
+
+    function exportFolder() {
+      if (!st.draft) return;
+      App.run(function () {
+        return window.api.exportItem(kind, payload());
+      }).then(function (r) {
+        if (r && !r.annullato) App.toast('Esportato in: ' + r.cartella);
+      });
+    }
+
+    /* ----- collegamenti ----- */
+
+    addBtn.addEventListener('click', create);
+    saveBtn.addEventListener('click', save);
+    revertBtn.addEventListener('click', revert);
+    dupBtn.addEventListener('click', duplicate);
+    delBtn.addEventListener('click', remove);
+    expBtn.addEventListener('click', exportFolder);
+    search.addEventListener('input', function () {
+      st.filter = search.value;
+      renderList();
+    });
+    [fNome, fDesc, fTags].forEach(function (el) {
+      el.addEventListener('input', function () {
+        onEdit(false);
+      });
+    });
+    code.addEventListener('input', function () {
+      if (!st.draft) return;
+      st.draft[st.active] = code.value;
+      onEdit(true);
+    });
+    globalChk.addEventListener('change', function () {
+      st.withGlobal = globalChk.checked;
+      if (st.draft) preview.refresh();
+    });
+
+    /* ----- interfaccia della scheda ----- */
+
+    function show() {
+      return Promise.all([
+        refreshList(),
+        App.run(function () {
+          return App.getGlobal();
+        })
+      ]).then(function (r) {
+        st.global = r[1] || null;
+        if (st.draft) {
+          preview.refresh();
+          return;
+        }
+        if (st.items.length) return loadFromDisk(st.items[0].id);
+      });
+    }
+
+    /* Dopo il cambio di cartella dei dati: toglie tutto ciò che è caricato. */
+    function reset() {
+      st.id = null;
+      st.draft = null;
+      st.saved = null;
+      st.snapshot = '';
+      st.items = [];
+      root.classList.add('no-selection');
+      renderList();
+    }
+
+    var tab = {
+      el: root,
+      show: show,
+      isDirty: isDirty,
+      save: save,
+      discard: discard,
+      reset: reset,
+      state: st
+    };
+    return tab;
+  }
+
+  App.defineTab({
+    id: 'strutture',
+    label: 'Strutture',
+    create: function () {
+      return createItemTab('strutture', { label: 'Strutture', hasJs: false });
+    }
+  });
+
+  App.defineTab({
+    id: 'componenti',
+    label: 'Componenti',
+    create: function () {
+      return createItemTab('componenti', { label: 'Componenti', hasJs: true });
+    }
+  });
+})();

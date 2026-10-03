@@ -1,0 +1,42 @@
+{
+  "name": "cat-alog",
+  "productName": "CAT-ALOG",
+  "version": "1.0.0",
+  "description": "App desktop personale: catalogo di strutture flex, componenti, classi e variabili root",
+  "main": "main.js",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "dist": "npx --yes electron-builder",
+    "smoke": "xvfb-run -a -s \"-screen 0 1440x900x24\" node scripts/smoke-electron.js"
+  },
+  "build": {
+    "appId": "com.catalog.catalog",
+    "productName": "CAT-ALOG",
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "renderer/**",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "jsdom": "^30.1.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
