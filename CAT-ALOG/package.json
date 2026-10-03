@@ -20,6 +20,7 @@
       "preload.js",
       "lib/**",
       "renderer/**",
+      "build/icon.png",
       "package.json"
     ],
     "win": {
@@ -30,6 +31,9 @@
     },
     "linux": {
       "target": "AppImage"
+    },
+    "directories": {
+      "buildResources": "build"
     }
   },
   "devDependencies": {

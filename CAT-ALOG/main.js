@@ -112,6 +112,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'CAT-ALOG',
+    icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

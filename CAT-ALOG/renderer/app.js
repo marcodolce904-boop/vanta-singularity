@@ -10,6 +10,39 @@
     return;
   }
 
+  /* ---------- aspetto (tema) ---------- */
+
+  var TEMI = [
+    ['classico', 'Classico (segue il tema del sistema)'],
+    ['gatti', 'Gatti (chiaro, crema e arancio)'],
+    ['gatti-scuro', 'Gatti scuro (notte)']
+  ];
+
+  function currentTheme() {
+    var t = document.documentElement.getAttribute('data-theme');
+    return TEMI.some(function (x) { return x[0] === t; }) ? t : 'classico';
+  }
+
+  function applyTheme(t) {
+    if (!TEMI.some(function (x) { return x[0] === t; })) t = 'classico';
+    document.documentElement.setAttribute('data-theme', t);
+    try {
+      window.localStorage.setItem('cat-tema', t);
+    } catch (e) { /* senza memoria locale il tema vale per questa sessione */ }
+  }
+
+  /* Il gatto del logo saluta solo se ci passi sopra con il mouse (e se non hai chiesto meno movimento). */
+  (function () {
+    var logo = document.getElementById('brand-logo');
+    if (!logo || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    var timer = null;
+    logo.addEventListener('mouseenter', function () {
+      logo.src = 'img/maneki-neko.svg';
+      clearTimeout(timer);
+      timer = setTimeout(function () { logo.src = 'img/maneki-neko-statico.svg'; }, 3600);
+    });
+  })();
+
   var tabs = [];
   var byId = {};
   var current = null;
@@ -193,6 +226,9 @@
         autocomplete: 'off',
         'aria-label': 'Prefisso del file CSS delle classi'
       });
+      var themeSelect = h('select', { 'aria-label': 'Aspetto dell\'app' }, TEMI.map(function (t) { return h('option', { value: t[0], text: t[1] }); }));
+      themeSelect.value = currentTheme();
+      themeSelect.addEventListener('change', function () { applyTheme(themeSelect.value); });
       var editorInput = h('input', {
         type: 'text',
         value: App.config.editor || 'code',
@@ -281,6 +317,10 @@
             })
           ]),
           h('label', { class: 'field' }, [
+            h('span', { text: 'Aspetto' }),
+            themeSelect
+          ]),
+          h('label', { class: 'field' }, [
             h('span', { text: 'Programma per «Apri in VS Code» (comando)' }),
             editorInput
           ]),
@@ -344,6 +384,8 @@
   App.globalSearch = globalSearch;
   App.openSettings = openSettings;
   App.reloadAll = reloadAll;
+  App.applyTheme = applyTheme;
+  App.currentTheme = currentTheme;
 
   buildTabs();
 

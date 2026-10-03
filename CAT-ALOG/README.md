@@ -45,6 +45,14 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
 
+## Aspetto: tema gatti e logo
+
+- **Impostazioni → Aspetto**: *Classico* (segue il tema chiaro/scuro del sistema), *Gatti* (crema e arancio, angoli più morbidi) e *Gatti scuro* (notte). Si applica subito e viene ricordato. In tutti e tre i temi i colori del testo, dei pulsanti, degli avvisi e del codice hanno almeno contrasto AA (4,5:1): c'è un test che lo controlla.
+- **Logo**: il Maneki-neko in alto a sinistra è un SVG disegnato per l'app (`renderer/img/maneki-neko-statico.svg`). La zampa saluta solo se ci passi sopra con il mouse, ed è ferma se hai chiesto meno movimento al sistema. La versione animata è `maneki-neko.svg`.
+- **Dettagli a tema** (solo nei temi Gatti): il gatto compare negli elenchi vuoti e le zampette sostituiscono i punti elenco nei consigli.
+- **Icona dell'app**: `build/icon.png` (1024 px), usata per la finestra e per l'installer.
+- **Cambiare logo o icona**: sostituisci i due file in `renderer/img/` (stesso nome) e `build/icon.png`. Per cambiare i colori di un tema modifica le variabili `--ui-*` nei blocchi `:root[data-theme="gatti"]` e `:root[data-theme="gatti-scuro"]` in `renderer/style.css`. Per un tema nuovo: copia uno dei due blocchi con un altro nome e aggiungilo alla lista `TEMI` in `renderer/app.js` e al controllo in `renderer/index.html`.
+
 ## Editor del codice e VS Code
 
 - **Colori nel codice** (HTML, CSS, JavaScript; anche CSS e JS dentro `<style>` e `<script>`), **numeri di riga** e una sottolineatura con il colore vero sotto i valori `#rrggbb`. Si spegne con la casella «Colori e numeri di riga» (la scelta resta). Niente librerie: è una colorazione scritta per l'app, sovrapposta al campo di testo con le stesse misure; oltre 200.000 caratteri si spegne da sola.

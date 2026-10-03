@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Maneki-neko, il gatto portafortuna che saluta">
+  <style>
+    .paw { transform-box: view-box; transform-origin: 43px 38px; animation: saluto 1.8s ease-in-out infinite; }
+    @keyframes saluto { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(14deg); } }
+    @media (prefers-reduced-motion: reduce) { .paw { animation: none; } }
+  </style>
+  <g stroke="#3b2a1e" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round">
+    <!-- corpo -->
+    <path d="M12 50c0-10 8-17 20-17s20 7 20 17c0 8-6 11-20 11S12 58 12 50z" fill="#fff6e5"/>
+    <!-- zampa appoggiata con moneta -->
+    <ellipse cx="22.500" cy="51" rx="5.500" ry="6" fill="#fff6e5"/>
+    <ellipse cx="22.500" cy="50" rx="3.800" ry="4.600" fill="#f4b73c" stroke-width="1.500"/>
+    <path d="M20.500 50h4M22.500 47.500v5" stroke-width="1.100" stroke="#9a6a10"/>
+    <!-- orecchie -->
+    <path d="M17 18 15 6l10 6z" fill="#fff6e5"/>
+    <path d="M47 18 49 6 39 12z" fill="#fff6e5"/>
+    <path d="M18.500 14 17.800 9.500 22 12z" fill="#f2a6b0" stroke="none"/>
+    <path d="M45.500 14 46.200 9.500 42 12z" fill="#f2a6b0" stroke="none"/>
+    <!-- testa -->
+    <ellipse cx="32" cy="23" rx="16" ry="13.500" fill="#fff6e5"/>
+    <!-- macchie arancioni -->
+    <path d="M20 14c3-3 7-4 10-3-1 4-5 6-10 3z" fill="#e8943a" stroke="none"/>
+    <!-- collare e campanella -->
+    <path d="M19 34c4 3 8 4 13 4s9-1 13-4l1 4c-4 3-9 4-14 4s-10-1-14-4z" fill="#d9362b"/>
+    <circle cx="32" cy="42" r="3.200" fill="#f4b73c"/>
+    <path d="M30.500 42h3" stroke-width="1.200"/>
+    <!-- zampa che saluta -->
+    <g class="paw">
+      <path d="M42 40c3-1 6-5 6-12v-9a4.500 4.500 0 0 1 9 0v10c0 8-5 14-12 14z" fill="#fff6e5"/>
+      <circle cx="52.500" cy="25.500" r="2.200" fill="#f2a6b0" stroke="none"/>
+      <path d="M49.500 21.500v-2M55.500 21.500v-2" stroke-width="1.300"/>
+    </g>
+    <!-- viso -->
+    <path d="M24 22q2.500-3 5 0M35 22q2.500-3 5 0" fill="none"/>
+    <path d="M30.500 27h3l-1.500 2z" fill="#f2a6b0" stroke-width="1.200"/>
+    <path d="M32 29v1.500q-2 2-4 0M32 30.500q2 2 4 0" fill="none" stroke-width="1.500"/>
+    <path d="M20 27l-5-1M20 29l-5 1.500M44 27l5-1M44 29l5 1.500" stroke-width="1.200" fill="none"/>
+  </g>
+  <circle cx="23" cy="27" r="2.500" fill="#f7b9c1"/>
+  <circle cx="41" cy="27" r="2.500" fill="#f7b9c1"/>
+</svg>
