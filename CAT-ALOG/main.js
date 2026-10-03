@@ -24,6 +24,10 @@ function makeUi() {
       const r = await dialog.showOpenDialog(win, { title: titolo, properties: ['openFile'], filters: filtri });
       return r.canceled || !r.filePaths.length ? null : r.filePaths[0];
     },
+    chooseOpenFiles: async function (titolo, filtri) {
+      const r = await dialog.showOpenDialog(win, { title: titolo, properties: ['openFile', 'multiSelections'], filters: filtri });
+      return r.canceled ? [] : r.filePaths;
+    },
     /* Disegna la pagina in una finestra nascosta e ne fa una foto intera per ogni larghezza. */
     renderPng: async function (doc, widths) {
       const out = [];

@@ -6,6 +6,7 @@ const S = require('./shared');
 const seed = require('./seed');
 const libreria = require('./libreria');
 const zip = require('./zip');
+const assetinfo = require('./assetinfo');
 
 const KINDS = {
   strutture: { js: false },
@@ -401,6 +402,10 @@ function createStore(dataDir) {
     writeFile(path.join(base, 'css', 'root.css'), cssText('root'));
     writeFile(path.join(base, 'css', prefisso + '-classi.css'), cssText('classi'));
     writeFile(path.join(base, 'css', 'responsive.css'), require('./responsive').buildCss());
+    listAssets().forEach(function (a) {
+      fs.mkdirSync(path.join(base, 'assets'), { recursive: true });
+      fs.copyFileSync(a.percorso, path.join(base, 'assets', a.nome));
+    });
     writeFile(path.join(base, 'tokens', 'figma-tokens.json'), tokensText());
     const links = ['../../css/root.css', '../../css/' + prefisso + '-classi.css'];
     const counts = {};
@@ -509,9 +514,93 @@ function createStore(dataDir) {
     return { ver: ver, nome: S.str(j.nome), descrizione: S.str(j.descrizione), tag: Array.isArray(j.tag) ? j.tag.map(String) : [], html: S.str(j.html), css: S.str(j.css), js: S.str(j.js) };
   }
 
+  /* ---------- asset (immagini, SVG, Lottie, video, font) ---------- */
+
+  function assetPath(nome) {
+    const n = S.str(nome);
+    if (!/^[a-z0-9][a-z0-9._-]*\.[a-z0-9]+$/.test(n) || n.indexOf('..') !== -1) throw new Error('Nome di asset non valido');
+    return p('assets', n);
+  }
+
+  function readHead(file, max) {
+    const fd = fs.openSync(file, 'r');
+    try {
+      const buf = Buffer.alloc(max);
+      const n = fs.readSync(fd, buf, 0, max, 0);
+      return buf.slice(0, n);
+    } finally {
+      fs.closeSync(fd);
+    }
+  }
+
+  function describeAsset(nome) {
+    const file = assetPath(nome);
+    const st = fs.statSync(file);
+    const ext = assetinfo.extOf(nome);
+    const tipo = assetinfo.tipoPer(ext);
+    const head = readHead(file, tipo === 'immagine' ? 1024 * 1024 : tipo === 'svg' || tipo === 'lottie' ? 2 * 1024 * 1024 : 16);
+    const info = assetinfo.inspect(nome, head, st.size);
+    info.nome = nome;
+    info.modificato = st.mtime.toISOString();
+    info.percorso = file;
+    return info;
+  }
+
+  function listAssets() {
+    const dir = p('assets');
+    if (!fs.existsSync(dir)) return [];
+    const out = [];
+    fs.readdirSync(dir, { withFileTypes: true }).forEach(function (ent) {
+      if (!ent.isFile() || !/^[a-z0-9][a-z0-9._-]*\.[a-z0-9]+$/.test(ent.name)) return;
+      if (!assetinfo.tipoPer(assetinfo.extOf(ent.name))) return;
+      try {
+        out.push(describeAsset(ent.name));
+      } catch (e) { /* file illeggibile: si salta */ }
+    });
+    out.sort(function (a, b) { return a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base' }); });
+    return out;
+  }
+
+  /* Copia un file dentro la cartella assets, con nome pulito e unico. */
+  function addAsset(srcFile) {
+    const src = path.resolve(S.str(srcFile));
+    if (!fs.existsSync(src) || !fs.statSync(src).isFile()) throw new Error('File non trovato');
+    const ext = assetinfo.extOf(src);
+    const tipo = assetinfo.tipoPer(ext);
+    if (!tipo) throw new Error('Tipo di file non supportato: .' + ext);
+    const size = fs.statSync(src).size;
+    if (size > assetinfo.MAX_BYTE) throw new Error('File troppo grande (massimo 50 MB)');
+    if (tipo === 'lottie' && !assetinfo.lottieInfo(fs.readFileSync(src, 'utf8'))) throw new Error('Il file .json non sembra un\'animazione Lottie');
+    const base = S.slugify(path.basename(src, path.extname(src)));
+    const existing = new Set(fs.existsSync(p('assets')) ? fs.readdirSync(p('assets')) : []);
+    let nome = base + '.' + ext;
+    let n = 2;
+    while (existing.has(nome)) { nome = base + '-' + n + '.' + ext; n += 1; }
+    fs.mkdirSync(p('assets'), { recursive: true });
+    fs.copyFileSync(src, p('assets', nome));
+    return describeAsset(nome);
+  }
+
+  function removeAsset(nome) {
+    const file = assetPath(nome);
+    if (!fs.existsSync(file)) throw new Error('Asset non trovato');
+    return { cestino: moveToTrash(file, 'asset-' + nome) };
+  }
+
+  function renameAsset(nome, nuovo) {
+    const from = assetPath(nome);
+    if (!fs.existsSync(from)) throw new Error('Asset non trovato');
+    const ext = assetinfo.extOf(nome);
+    const base = S.slugify(S.str(nuovo).replace(/\.[a-z0-9]+$/i, ''));
+    const to = assetPath(base + '.' + ext);
+    if (to !== from && fs.existsSync(to)) throw new Error('Esiste già un asset con questo nome');
+    fs.renameSync(from, to);
+    return describeAsset(base + '.' + ext);
+  }
+
   /* ---------- backup e ripristino ---------- */
 
-  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root']);
+  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets']);
   const BACKUP_FILES = ['catalogo.json', 'libreria.json'];
 
   function backupEntries() {
@@ -605,7 +694,7 @@ function createStore(dataDir) {
     fs.mkdirSync(root, { recursive: true });
     const fresh = !fs.existsSync(p('catalogo.json'));
     const added = [];
-    Object.keys(KINDS).concat(['classi', 'root']).forEach(function (d) {
+    Object.keys(KINDS).concat(['classi', 'root', 'assets']).forEach(function (d) {
       if (!fs.existsSync(p(d))) added.push(d);
       fs.mkdirSync(p(d), { recursive: true });
     });
@@ -650,6 +739,10 @@ function createStore(dataDir) {
     exportItem: exportItem,
     exportAll: exportAll,
     importFolder: importFolder,
+    listAssets: listAssets,
+    addAsset: addAsset,
+    removeAsset: removeAsset,
+    renameAsset: renameAsset,
     listVersions: listVersions,
     getVersion: getVersion,
     backupZip: backupZip,

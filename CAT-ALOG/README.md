@@ -10,7 +10,7 @@ App desktop personale (Electron) per tenere in un posto solo le tue **strutture 
 
 Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette dei **contenuti di esempio**. Servono solo a far vedere come funziona: cancellali o modificali quando vuoi (finiscono nel cestino, vedi sotto).
 
-## Le 7 schede
+## Le 9 schede
 
 | Scheda | A cosa serve | Cosa fai |
 |---|---|---|
@@ -19,6 +19,8 @@ Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette de
 | **Animazioni** | `@keyframes` e transizioni pronte (fade, slide, hover, scroll-reveal), solo `transform`/`opacity` e `prefers-reduced-motion` | stesso flusso di Componenti |
 | **Interazioni** | comportamenti in JS vanilla (menu mobile, modale `<dialog>`, tab, tooltip, tema scuro) con attributi `data-cat-*` | stesso flusso di Componenti |
 | **Responsive** | media query già pronti, in una pagina sola | scegli un gruppo, **Copia**; vedi quali valgono adesso; provi le larghezze dei dispositivi |
+| **Tipografia** | coppie di font e scala dei caratteri fluida | scegli la coppia, regola la scala, **Copia :root** o **Scrivi nel Root** |
+| **Asset** | immagini, SVG, Lottie, video, font, PDF | **+ Aggiungi**, anteprima, peso, avvisi, frammenti pronti da copiare |
 | **Classi** | catalogo di sole classi CSS, a gruppi | copi il nome o la regola, **Prova** la classe in un riquadro, aggiungi/modifichi/togli classi e gruppi, **Salva**, **Esporta file CSS** |
 | **Root** | variabili `:root` (colori, font, spaziature, raggi, ombre…) | cambi i valori (selettore colore incluso), **preset** di palette, controllo contrasto AA, **Copia :root**, **Salva root.css**, **Esporta token Figma** |
 
@@ -27,7 +29,7 @@ Regole che valgono ovunque:
 - Le modifiche si salvano **solo** con **Salva** (o Ctrl/Cmd+S). Finché non salvi, in alto a destra vedi «● Modifiche non salvate».
 - Se cambi elemento, scheda o chiudi l'app con modifiche non salvate, l'app chiede: **Salva e continua**, **Scarta**, **Annulla**.
 - **Ripristina** torna all'ultima versione salvata.
-- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…7** cambia scheda · frecce sinistra/destra sulle schede.
+- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…9** cambia scheda · frecce sinistra/destra sulle schede.
 - Nel campo del codice **Tab** inserisce 2 spazi; per uscire dal campo con la tastiera: **Esc**, poi **Tab**.
 - «Usa root e classi» nell'anteprima applica le variabili e le classi **salvate** alla tua struttura.
 
@@ -38,6 +40,16 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
+
+## Tipografia
+
+- **14 coppie di font** (titoli + testo): 4 solo di sistema (niente da scaricare) e 10 di Google Fonts (serve la connessione; **Copia il link dei font** dà i tag per il `<head>`). C'è anche Baloo 2 + Nunito, rotondo e giocoso, pensato per il tema gatti.
+- **Scala fluida**: scegli la dimensione del testo base su schermo piccolo e grande, il rapporto (1,125 … 1,5), la larghezza minima e massima. Il programma calcola `clamp()` per ogni passo (`--cat-text-xs … --cat-text-5xl`) e le interlinee.
+- **Scrivi nel Root**: aggiorna le variabili che esistono già e aggiunge le nuove nel gruppo «Tipografia»; ti dice quante cambiano e salva subito.
+
+## Asset
+
+Immagini (png, jpg, gif, webp, avif, ico), SVG, Lottie (.json), video (mp4, webm), font (woff2, woff, ttf, otf) e PDF, fino a 50 MB l'uno. I file vengono **copiati** nella cartella `assets/` dei dati (l'originale non si tocca) con un nome pulito. Per ognuno vedi anteprima, peso, dimensioni in pixel e, per i Lottie, fps/durata/livelli. Avvisi: file pesanti, immagini troppo larghe, SVG con script, font non woff2, video grandi. Frammenti da copiare: percorso, `<img>` con `width`/`height`, sfondo CSS, maschera CSS per SVG, codice Lottie, `<video>`, `@font-face`. «Esporta tutto» e il backup includono la cartella `assets/`. Non c'è anteprima animata dei Lottie (servirebbe una libreria): il frammento pronto li fa partire nel tuo sito.
 
 ## Pagina Responsive
 

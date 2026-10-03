@@ -29,6 +29,7 @@ function make(over) {
       copy: (t) => log.copied.push(t),
       openPath: async (p) => log.opened.push(p),
       chooseOpenFile: async () => null,
+      chooseOpenFiles: async () => [],
       renderPng: async (doc, widths) => widths.map((width) => ({ width, png: Buffer.from('PNG' + width) }))
     },
     over || {}

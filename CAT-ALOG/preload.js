@@ -33,6 +33,10 @@ const NAMES = [
   'restore',
   'exportPng',
   'exportResponsive',
+  'listAssets',
+  'addAssets',
+  'removeAsset',
+  'renameAsset',
   'copy'
 ];
 

@@ -322,3 +322,37 @@ test('opzioni di anteprima: tema scuro, senza animazioni, griglia', () => {
   assert.match(d, /repeating-linear-gradient/);
   assert.ok(d.indexOf('<style>') < d.indexOf('</head>'));
 });
+
+test('tipografia: scala fluida, variabili e unione nel Root', () => {
+  const sc = S.fluidScale({ minSize: 16, maxSize: 20, minRatio: 1.2, maxRatio: 1.25, minVw: 320, maxVw: 1240, giu: 2, su: 3 });
+  assert.deepEqual(sc.map((x) => x.nome), ['xs', 'sm', 'base', 'lg', 'xl', '2xl']);
+  const base = sc.find((x) => x.nome === 'base');
+  assert.equal(base.min, 16);
+  assert.equal(base.max, 20);
+  assert.match(base.valore, /^clamp\(1rem, [0-9.]+rem \+ [0-9.]+vw, 1\.25rem\)$/);
+  /* a 320 px il clamp vale il minimo, a 1240 px il massimo: intercept + slope * vw */
+  const m = /clamp\(([\d.]+)rem, ([\d.]+)rem \+ ([\d.]+)vw/.exec(base.valore);
+  const at = (vw) => (parseFloat(m[2]) * 16 + (parseFloat(m[3]) / 100) * vw);
+  assert.ok(Math.abs(at(320) - 16) < 0.05 && Math.abs(at(1240) - 20) < 0.05, at(320) + ' ' + at(1240));
+  assert.ok(sc.every((x, i) => i === 0 || x.min > sc[i - 1].min), 'cresce');
+  const fisso = S.fluidScale({ minSize: 16, maxSize: 16, minRatio: 1, maxRatio: 1, giu: 0, su: 0 });
+  assert.equal(fisso[0].valore, '1rem');
+  assert.equal(S.fluidScale({ minSize: 'abc' }).length, 9, 'valori sbagliati: si usano i predefiniti');
+
+  const vars = S.typographyVars({ lhTesto: 1.5 }, { titoli: '"Baloo 2", sans-serif', testo: 'Nunito, sans-serif' });
+  assert.ok(vars.some((v) => v.nome === '--cat-font-heading' && /Baloo/.test(v.valore)));
+  assert.ok(vars.some((v) => v.nome === '--cat-line-height' && v.valore === '1.5'));
+
+  const root = S.normalizeRoot(seed.root);
+  const prima = JSON.stringify(root);
+  const r = S.mergeRootVars(root, vars, 'Tipografia');
+  assert.ok(r.aggiornate >= 3, 'font e text-base/lg/xl esistevano');
+  assert.ok(r.aggiunte >= 5);
+  assert.equal(JSON.stringify(root), prima, 'l\'originale non cambia');
+  const nomi = [];
+  r.data.gruppi.forEach((g) => g.variabili.forEach((v) => nomi.push(v.nome)));
+  assert.equal(new Set(nomi).size, nomi.length, 'nessun nome doppio');
+  const again = S.mergeRootVars(r.data, vars, 'Tipografia');
+  assert.equal(again.aggiunte, 0);
+  assert.equal(again.aggiornate, 0);
+});

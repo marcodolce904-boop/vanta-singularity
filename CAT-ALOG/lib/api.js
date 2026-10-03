@@ -5,6 +5,7 @@ const path = require('path');
 const { createStore } = require('./store');
 const S = require('./shared');
 const R = require('./responsive');
+const { pathToFileURL } = require('url');
 
 const API_NAMES = [
   'getConfig',
@@ -37,6 +38,10 @@ const API_NAMES = [
   'restore',
   'exportPng',
   'exportResponsive',
+  'listAssets',
+  'addAssets',
+  'removeAsset',
+  'renameAsset',
   'copy'
 ];
 
@@ -193,6 +198,32 @@ function createApi(opzioni) {
       if (!file) return { annullato: true };
       return Object.assign({ annullato: false }, store.restoreZip(fs.readFileSync(file)));
     },
+
+    listAssets: async function () {
+      return store.listAssets().map(function (a) {
+        return Object.assign({}, a, { url: pathToFileURL(a.percorso).href });
+      });
+    },
+
+    addAssets: async function () {
+      const files = await ui.chooseOpenFiles('Scegli i file da aggiungere agli asset', [
+        { name: 'Immagini, SVG, Lottie, video, font, PDF', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'ico', 'svg', 'json', 'mp4', 'webm', 'woff2', 'woff', 'ttf', 'otf', 'pdf'] }
+      ]);
+      if (!files || !files.length) return { annullato: true };
+      const aggiunti = [];
+      const errori = [];
+      files.forEach(function (f) {
+        try {
+          aggiunti.push(store.addAsset(f).nome);
+        } catch (e) {
+          errori.push({ file: path.basename(f), messaggio: e.message });
+        }
+      });
+      return { annullato: false, aggiunti: aggiunti, errori: errori };
+    },
+
+    removeAsset: async function (nome) { return store.removeAsset(nome); },
+    renameAsset: async function (nome, nuovo) { return store.renameAsset(nome, nuovo); },
 
     exportResponsive: async function (gruppiIds) {
       const file = await ui.chooseSaveFile('responsive.css', [{ name: 'CSS', extensions: ['css'] }]);

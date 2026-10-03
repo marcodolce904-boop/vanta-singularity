@@ -29,10 +29,12 @@ async function waitFor(fn, label, ms) {
 
 async function boot() {
   const base = tmp();
-  const state = { clip: [], opened: [], folder: null, saveFile: null, errors: [], calls: [] };
+  const state = { clip: [], opened: [], folder: null, saveFile: null, files: [], errors: [], calls: [] };
   const ui = {
     chooseFolder: async () => state.folder,
     chooseSaveFile: async () => state.saveFile,
+    chooseOpenFiles: async () => state.files,
+    chooseOpenFile: async () => state.files[0] || null,
     copy: (t) => state.clip.push(t),
     openPath: async (p) => state.opened.push(p)
   };

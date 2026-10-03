@@ -699,7 +699,91 @@
     return res;
   }
 
+  /* ---------- tipografia: scala fluida con clamp() ---------- */
+
+  var SCALE_NAMES = { '-2': 'xs', '-1': 'sm', '0': 'base', '1': 'lg', '2': 'xl', '3': '2xl', '4': '3xl', '5': '4xl', '6': '5xl' };
+
+  function num(v, def) {
+    var n = parseFloat(v);
+    return isFinite(n) ? n : def;
+  }
+
+  function r4(n) {
+    return Math.round(n * 10000) / 10000;
+  }
+
+  /* opts: minSize, maxSize (px del testo base alle larghezze minVw e maxVw), minRatio, maxRatio, minVw, maxVw, giu, su */
+  function fluidScale(opts) {
+    var o = opts || {};
+    var minSize = Math.max(8, num(o.minSize, 16));
+    var maxSize = Math.max(minSize, num(o.maxSize, 18));
+    var minRatio = Math.max(1, num(o.minRatio, 1.2));
+    var maxRatio = Math.max(1, num(o.maxRatio, 1.25));
+    var minVw = Math.max(200, num(o.minVw, 320));
+    var maxVw = Math.max(minVw + 100, num(o.maxVw, 1240));
+    var giu = Math.min(3, Math.max(0, Math.round(num(o.giu, 2))));
+    var su = Math.min(6, Math.max(0, Math.round(num(o.su, 6))));
+    var out = [];
+    for (var i = -giu; i <= su; i++) {
+      var min = minSize * Math.pow(minRatio, i);
+      var max = maxSize * Math.pow(maxRatio, i);
+      var slope = (max - min) / (maxVw - minVw);
+      var intercept = min - slope * minVw;
+      var lo = r4(min / 16);
+      var hi = r4(max / 16);
+      var valore = lo === hi
+        ? lo + 'rem'
+        : 'clamp(' + lo + 'rem, ' + r4(intercept / 16) + 'rem + ' + r4(slope * 100) + 'vw, ' + hi + 'rem)';
+      out.push({ passo: i, nome: SCALE_NAMES[String(i)], min: r4(min), max: r4(max), valore: valore });
+    }
+    return out;
+  }
+
+  /* Variabili Root per la tipografia: famiglie, scala, interlinee. */
+  function typographyVars(opts, fonts) {
+    var f = fonts || {};
+    var vars = [];
+    if (str(f.titoli).trim()) vars.push({ nome: '--cat-font-heading', valore: str(f.titoli).trim() });
+    if (str(f.testo).trim()) vars.push({ nome: '--cat-font-body', valore: str(f.testo).trim() });
+    fluidScale(opts).forEach(function (s) {
+      vars.push({ nome: '--cat-text-' + s.nome, valore: s.valore });
+    });
+    var o = opts || {};
+    vars.push({ nome: '--cat-line-height', valore: String(num(o.lhTesto, 1.6)) });
+    vars.push({ nome: '--cat-line-height-heading', valore: String(num(o.lhTitoli, 1.15)) });
+    return vars;
+  }
+
+  /* Mette le variabili dentro i dati Root: aggiorna quelle che esistono già (ovunque siano)
+     e aggiunge le nuove nel gruppo `gruppo` (lo crea se manca). Non modifica l'originale. */
+  function mergeRootVars(rootData, vars, gruppo) {
+    var data = JSON.parse(JSON.stringify(normalizeRoot(rootData)));
+    var byName = {};
+    data.gruppi.forEach(function (g) { g.variabili.forEach(function (v) { byName[v.nome] = v; }); });
+    var target = null;
+    data.gruppi.forEach(function (g) { if (g.nome === gruppo) target = g; });
+    var aggiornate = 0;
+    var aggiunte = 0;
+    vars.forEach(function (v) {
+      if (byName[v.nome]) {
+        if (byName[v.nome].valore !== v.valore) aggiornate += 1;
+        byName[v.nome].valore = v.valore;
+        return;
+      }
+      if (!target) {
+        target = { id: uid('g'), nome: gruppo, variabili: [] };
+        data.gruppi.push(target);
+      }
+      target.variabili.push({ id: uid('v'), nome: v.nome, valore: v.valore, tipo: 'testo' });
+      aggiunte += 1;
+    });
+    return { data: data, aggiunte: aggiunte, aggiornate: aggiornate };
+  }
+
   return {
+    fluidScale: fluidScale,
+    typographyVars: typographyVars,
+    mergeRootVars: mergeRootVars,
     applyPreviewOptions: applyPreviewOptions,
     qualityCheck: qualityCheck,
     colorScale: colorScale,
