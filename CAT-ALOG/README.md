@@ -32,7 +32,7 @@ Regole che valgono ovunque:
 
 ## Libreria di esempi
 
-All'apertura l'app installa una **libreria** pronta (circa 60 voci): strutture di pagina con i punti per il logo (hero, header, footer, riga di loghi clienti), componenti (pulsanti, navbar, card, form, tabelle, switch, loader, carosello, icone social…), animazioni e interazioni. Regole:
+All'apertura l'app installa una **libreria** pronta (circa 110 voci): strutture di pagina con i punti per il logo (hero, header, footer, riga di loghi clienti), componenti (pulsanti, navbar, card, form, tabelle, switch, loader, carosello, icone social…), animazioni e interazioni. Regole:
 
 - Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
@@ -54,6 +54,15 @@ Sono file normali: puoi aprirli con VS Code, metterli su Git o in Drive. La cart
 
 Sicurezza dei dati: elimina = sposta in `_cestino` (mai cancellazione definitiva) · ogni Salva di classi/root lascia una copia `.bak` · un JSON rovinato non blocca l'app e ne resta una copia `.corrotto-<data>` · i file si scrivono in modo atomico (niente file a metà se si spegne il PC).
 
+## Cercare e preferiti
+
+- **Ctrl/Cmd+K** (o il pulsante **Cerca** in alto): cerca in Strutture, Componenti, Animazioni e Interazioni insieme e apre l'elemento.
+- **☆ Preferito** nell'editor (si salva con **Salva**): i preferiti vanno in cima all'elenco, con la stella; la casella **Solo preferiti** filtra l'elenco.
+
+## Strumenti colore
+
+Scheda Root → **Strumenti colore…**: per un colore `#rrggbb` mostra la scala 50–900, il CMYK approssimato (solo indicativo), come lo vedono protanopia, deuteranopia e tritanopia, e la versione scura. **Aggiungi la scala come variabili** crea un gruppo con 10 variabili.
+
 ## Importare
 
 In Strutture, Componenti, Animazioni e Interazioni c'è il pulsante **Importa…** sopra l'elenco:
@@ -64,6 +73,7 @@ In Strutture, Componenti, Animazioni e Interazioni c'è il pulsante **Importa…
 ## Esportare
 
 - **Esporta cartella** (in Strutture/Componenti): una cartella con `index.html` (pagina completa), `style.css` ed eventualmente `script.js`, che si apre da sola nel browser.
+- **Root in altri formati** (scheda Root → **Altri formati…**): JSON, SCSS (variabili + mappa) e override per Bootstrap 5.3 (`$primary`, `$danger`, `$border-radius`…). L'override è stato compilato con Sass e Bootstrap 5.3.8 veri. Le variabili che puntano ad altre (`var(…)`) vengono saltate.
 - **Esporta tutto** (in alto): una cartella `catalogo-cat/` pronta per VS Code:
   ```
   catalogo-cat/

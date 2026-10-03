@@ -243,3 +243,49 @@ test('splitCode: pagina intera, blocchi di chat e React', () => {
   assert.match(r.js, /React/);
   assert.deepEqual(S.splitCode(''), { html: '', css: '', js: '', avvisi: [] });
 });
+
+test('Root in altri formati: SCSS, JSON e override Bootstrap', () => {
+  const root = S.normalizeRoot({
+    gruppi: [{ nome: 'Colori', variabili: [
+      { nome: '--cat-color-primary', valore: '#2f6f4e', tipo: 'colore' },
+      { nome: '--cat-color-error', valore: '#b3261e', tipo: 'colore' },
+      { nome: '--cat-radius-md', valore: '0.5rem' },
+      { nome: '--cat-color-bg', valore: 'var(--cat-color-primary)' }
+    ] }]
+  });
+  const scss = S.buildRootScss(root);
+  assert.match(scss, /\$cat-color-primary: #2f6f4e;/);
+  assert.match(scss, /\$cat-tokens: \(/);
+  assert.deepEqual(JSON.parse(S.buildRootJson(root)), {
+    '--cat-color-primary': '#2f6f4e', '--cat-color-error': '#b3261e', '--cat-radius-md': '0.5rem', '--cat-color-bg': 'var(--cat-color-primary)'
+  });
+  const bs = S.buildBootstrapOverride(root);
+  assert.match(bs, /\$primary: #2f6f4e;/);
+  assert.match(bs, /\$danger: #b3261e;/);
+  assert.match(bs, /\$border-radius: 0\.5rem;/);
+  assert.doesNotMatch(bs, /body-bg/, 'le var(...) si saltano');
+  assert.match(S.buildBootstrapOverride({ gruppi: [] }), /Nessuna variabile riconosciuta/);
+});
+
+test('strumenti colore: scala, CMYK, daltonismo e versione scura', () => {
+  const sc = S.colorScale('#2f6f4e');
+  assert.equal(sc.length, 10);
+  assert.deepEqual(sc.map((x) => x.passo), [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]);
+  assert.ok(sc.every((x) => /^#[0-9a-f]{6}$/.test(x.hex)));
+  const lum = (h) => S.contrastRatio(h, '#000000');
+  assert.ok(lum(sc[0].hex) > lum(sc[5].hex) && lum(sc[5].hex) > lum(sc[9].hex), 'dal chiaro allo scuro');
+  assert.equal(S.colorScale('non-un-colore'), null);
+
+  assert.deepEqual(S.hexToCmyk('#000000'), { c: 0, m: 0, y: 0, k: 100 });
+  assert.deepEqual(S.hexToCmyk('#ffffff'), { c: 0, m: 0, y: 0, k: 0 });
+  assert.deepEqual(S.hexToCmyk('#ff0000'), { c: 0, m: 100, y: 100, k: 0 });
+
+  assert.equal(S.simulateColorBlind('#ffffff', 'deuteranopia'), '#ffffff');
+  assert.equal(S.simulateColorBlind('#000000', 'protanopia'), '#000000');
+  const rosso = S.simulateColorBlind('#ff0000', 'protanopia');
+  assert.notEqual(rosso, '#ff0000');
+  assert.equal(S.simulateColorBlind('#ff0000', 'boh'), null);
+
+  assert.equal(S.darkVariant('#ffffff'), '#000000');
+  assert.equal(S.darkVariant('#000000'), '#ffffff');
+});

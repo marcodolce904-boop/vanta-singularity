@@ -383,7 +383,192 @@
     };
   }
 
+  /* ---------- Root in altri formati (SCSS, JSON, override Bootstrap 5.3) ---------- */
+
+  function flatRoot(rootData) {
+    var out = [];
+    (rootData && rootData.gruppi || []).forEach(function (g) {
+      (g.variabili || []).forEach(function (v) {
+        if (v && v.nome && str(v.valore).trim()) out.push({ nome: v.nome, valore: str(v.valore).trim() });
+      });
+    });
+    return out;
+  }
+
+  function buildRootScss(rootData) {
+    var lines = ['// Variabili generate da CAT-ALOG', ''];
+    flatRoot(rootData).forEach(function (v) {
+      lines.push('$' + v.nome.replace(/^--/, '') + ': ' + v.valore + ';');
+    });
+    lines.push('', '// Mappa (@use "sass:map"; poi map.get($cat-tokens, "nome"))', '$cat-tokens: (');
+    var flat = flatRoot(rootData);
+    flat.forEach(function (v, i) {
+      lines.push('  "' + v.nome.replace(/^--/, '') + '": ' + (v.valore.indexOf(',') !== -1 ? '(' + v.valore + ')' : v.valore) + (i < flat.length - 1 ? ',' : ''));
+    });
+    lines.push(');', '');
+    return lines.join('\n');
+  }
+
+  function buildRootJson(rootData) {
+    var o = {};
+    flatRoot(rootData).forEach(function (v) { o[v.nome] = v.valore; });
+    return JSON.stringify(o, null, 2) + '\n';
+  }
+
+  /* Cerca la variabile dal suffisso del nome (indipendente dal prefisso): --cat-color-primary -> color-primary. */
+  var BOOTSTRAP_MAP = [
+    ['color-primary', '$primary'],
+    ['color-secondary', '$secondary'],
+    ['color-success', '$success'],
+    ['color-warning', '$warning'],
+    ['color-error', '$danger'],
+    ['color-bg', '$body-bg'],
+    ['color-text', '$body-color'],
+    ['color-text-muted', '$text-muted'],
+    ['color-border', '$border-color'],
+    ['font-body', '$font-family-sans-serif'],
+    ['font-mono', '$font-family-monospace'],
+    ['radius-md', '$border-radius'],
+    ['radius-sm', '$border-radius-sm'],
+    ['radius-lg', '$border-radius-lg']
+  ];
+
+  function buildBootstrapOverride(rootData) {
+    var flat = flatRoot(rootData);
+    var lines = [
+      '// Override per Bootstrap 5.3 (Sass), generato da CAT-ALOG.',
+      '// Mettilo PRIMA di: @import "bootstrap/scss/bootstrap";',
+      ''
+    ];
+    var n = 0;
+    BOOTSTRAP_MAP.forEach(function (m) {
+      var hit = flat.filter(function (v) {
+        var name = v.nome.replace(/^--[a-z0-9]+-/i, '');
+        return name === m[0];
+      })[0];
+      if (!hit) return;
+      var val = /^var\(/.test(hit.valore) ? null : hit.valore;
+      if (val === null) return;
+      lines.push(m[1] + ': ' + val + ';');
+      n += 1;
+    });
+    if (!n) lines.push('// Nessuna variabile riconosciuta: servono nomi come --cat-color-primary o --cat-radius-md.');
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  /* ---------- strumenti colore ---------- */
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var l = (max + min) / 2, hh = 0, ss = 0;
+    if (max !== min) {
+      var d = max - min;
+      ss = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) hh = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) hh = (b - r) / d + 2;
+      else hh = (r - g) / d + 4;
+      hh /= 6;
+    }
+    return [hh, ss, l];
+  }
+
+  function hslToRgb(hh, ss, l) {
+    function f(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+    if (ss === 0) return [l, l, l].map(function (v) { return Math.round(v * 255); });
+    var q = l < 0.5 ? l * (1 + ss) : l + ss - l * ss;
+    var p = 2 * l - q;
+    return [f(p, q, hh + 1 / 3), f(p, q, hh), f(p, q, hh - 1 / 3)].map(function (v) { return Math.round(v * 255); });
+  }
+
+  function rgbToHex(rgb) {
+    return '#' + rgb.map(function (v) {
+      var n = Math.max(0, Math.min(255, Math.round(v)));
+      return (n < 16 ? '0' : '') + n.toString(16);
+    }).join('');
+  }
+
+  /* Scala 50-900 dallo stesso colore: stessa tinta, luminosità da 97% a 12%.
+     Il passo 500 è il colore di partenza solo se la sua luminosità è già vicina al centro. */
+  var SCALE_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+  var SCALE_LIGHT = [0.97, 0.93, 0.85, 0.74, 0.62, 0.5, 0.4, 0.31, 0.22, 0.14];
+
+  function colorScale(hex) {
+    var rgb = parseHex(hex);
+    if (!rgb) return null;
+    var hsl = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    var out = SCALE_STEPS.map(function (step, i) {
+      var sat = hsl[1] * (i === 0 ? 0.6 : i === 1 ? 0.8 : 1);
+      return { passo: step, hex: rgbToHex(hslToRgb(hsl[0], sat, SCALE_LIGHT[i])) };
+    });
+    return out;
+  }
+
+  /* Conversione RGB -> CMYK approssimata: solo indicativa, la stampa vera dipende dal profilo ICC. */
+  function hexToCmyk(hex) {
+    var rgb = parseHex(hex);
+    if (!rgb) return null;
+    var r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+    var k = 1 - Math.max(r, g, b);
+    if (k >= 1) return { c: 0, m: 0, y: 0, k: 100 };
+    return {
+      c: Math.round(((1 - r - k) / (1 - k)) * 100),
+      m: Math.round(((1 - g - k) / (1 - k)) * 100),
+      y: Math.round(((1 - b - k) / (1 - k)) * 100),
+      k: Math.round(k * 100)
+    };
+  }
+
+  /* Simulazione daltonismo (matrici di Machado et al. 2009, gravità 1.0), calcolata sui valori lineari. */
+  var CVD = {
+    protanopia: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
+    deuteranopia: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+    tritanopia: [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]]
+  };
+
+  function toLinear(c) {
+    c /= 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  function fromLinear(c) {
+    c = Math.max(0, Math.min(1, c));
+    return Math.round((c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255);
+  }
+
+  function simulateColorBlind(hex, tipo) {
+    var rgb = parseHex(hex);
+    var m = CVD[tipo];
+    if (!rgb || !m) return null;
+    var lin = rgb.map(toLinear);
+    return rgbToHex(m.map(function (row) {
+      return fromLinear(row[0] * lin[0] + row[1] * lin[1] + row[2] * lin[2]);
+    }));
+  }
+
+  /* Versione scura: tiene la tinta, inverte la luminosità dei colori di sfondo/testo/bordo. */
+  function darkVariant(hex) {
+    var rgb = parseHex(hex);
+    if (!rgb) return null;
+    var hsl = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    return rgbToHex(hslToRgb(hsl[0], hsl[1], 1 - hsl[2]));
+  }
+
   return {
+    colorScale: colorScale,
+    hexToCmyk: hexToCmyk,
+    simulateColorBlind: simulateColorBlind,
+    darkVariant: darkVariant,
+    buildRootScss: buildRootScss,
+    buildRootJson: buildRootJson,
+    buildBootstrapOverride: buildBootstrapOverride,
     splitCode: splitCode,
     str: str,
     uid: uid,

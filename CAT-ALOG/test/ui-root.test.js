@@ -333,3 +333,21 @@ test('Root: l\'anteprima funziona con qualunque nome di variabile', async (t) =>
   const vuoto = H.w.CatalogoApp.buildRootSample({ gruppi: [] });
   assert.match(vuoto.html, /Aggiungi delle variabili/);
 });
+
+test('strumenti colore: mostra la scala e la aggiunge come gruppo', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  await H.showTab('root');
+  const panel = H.tab('root');
+  const before = panel.querySelectorAll('fieldset, .group').length;
+  H.click(H.button(panel, 'Strumenti colore…'));
+  const dlg = await H.dialog();
+  await H.waitFor(() => dlg.querySelectorAll('.sw').length >= 15, 'campioni di colore');
+  assert.match(dlg.textContent, /CMYK approssimato/);
+  assert.match(dlg.textContent, /deuteranopia/);
+  H.click(H.button(dlg, 'Aggiungi la scala come variabili'));
+  await H.noDialog();
+  await H.waitFor(() => panel.querySelectorAll('fieldset, .group').length === before + 1, 'nuovo gruppo');
+  assert.match(H.toast(), /scala/i);
+  assert.deepEqual(H.state.errors, []);
+});

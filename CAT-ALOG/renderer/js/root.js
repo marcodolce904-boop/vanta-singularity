@@ -173,6 +173,18 @@
         text: 'Esporta token Figma…',
         title: 'File JSON nel formato del plugin Tokens Studio per Figma'
       });
+      var colorToolsBtn = h('button', {
+        type: 'button',
+        class: 'btn small',
+        text: 'Strumenti colore…',
+        title: 'Scala 50-900, CMYK approssimato, daltonismo, versione scura'
+      });
+      var formatsBtn = h('button', {
+        type: 'button',
+        class: 'btn small',
+        text: 'Altri formati…',
+        title: 'SCSS, JSON oppure override per Bootstrap 5.3'
+      });
       var preview = App.makePreview({ title: 'Anteprima delle variabili', getDoc: sampleDoc });
 
       root.appendChild(
@@ -183,7 +195,7 @@
           contrastNote,
           h('h3', { text: 'CSS generato' }),
           cssOut,
-          h('div', { class: 'btn-row' }, [copyBtn, downloadBtn, tokensBtn])
+          h('div', { class: 'btn-row' }, [copyBtn, downloadBtn, tokensBtn, formatsBtn, colorToolsBtn])
         ])
       );
 
@@ -579,6 +591,101 @@
       });
       downloadBtn.addEventListener('click', function () {
         exportWith('exportCss', ['root', st.data]);
+      });
+      colorToolsBtn.addEventListener('click', function () {
+        var colors = [];
+        st.data.gruppi.forEach(function (g) {
+          g.variabili.forEach(function (v) {
+            if (S.normalizeHex(v.valore) && /^#/.test(v.valore.trim())) colors.push(v);
+          });
+        });
+        if (!colors.length) {
+          App.toast('Non ci sono colori scritti come #rrggbb', true);
+          return;
+        }
+        App.modal(function (d, finish) {
+          var sel = h('select', { 'aria-label': 'Colore' }, colors.map(function (v, i) {
+            return h('option', { value: String(i), text: v.nome + '  ' + v.valore });
+          }));
+          var body = h('div', { class: 'color-tools' });
+          var current = null;
+
+          function sw(hex, label) {
+            return h('div', { class: 'sw-cell' }, [
+              h('span', { class: 'sw', style: 'background:' + hex }),
+              h('small', { class: 'mono', text: label ? label + ' ' + hex : hex })
+            ]);
+          }
+
+          function render() {
+            var v = colors[Number(sel.value)];
+            var hex = S.normalizeHex(v.valore);
+            current = { v: v, hex: hex };
+            body.textContent = '';
+            var scale = S.colorScale(hex);
+            var cmyk = S.hexToCmyk(hex);
+            body.appendChild(h('h3', { text: 'Scala 50–900' }));
+            body.appendChild(h('div', { class: 'sw-row' }, scale.map(function (x) { return sw(x.hex, String(x.passo)); })));
+            body.appendChild(h('h3', { text: 'CMYK approssimato' }));
+            body.appendChild(h('p', { class: 'mono', text: 'C ' + cmyk.c + '  M ' + cmyk.m + '  Y ' + cmyk.y + '  K ' + cmyk.k + '  (solo indicativo: la stampa dipende dal profilo colore)' }));
+            body.appendChild(h('h3', { text: 'Come lo vede chi è daltonico' }));
+            body.appendChild(h('div', { class: 'sw-row' }, [
+              sw(hex, 'normale'),
+              sw(S.simulateColorBlind(hex, 'protanopia'), 'protanopia'),
+              sw(S.simulateColorBlind(hex, 'deuteranopia'), 'deuteranopia'),
+              sw(S.simulateColorBlind(hex, 'tritanopia'), 'tritanopia')
+            ]));
+            body.appendChild(h('h3', { text: 'Versione scura (luminosità invertita)' }));
+            body.appendChild(h('div', { class: 'sw-row' }, [sw(S.darkVariant(hex))]));
+          }
+
+          sel.addEventListener('change', render);
+          d.appendChild(
+            h('div', { class: 'modal-form' }, [
+              h('h2', { text: 'Strumenti colore' }),
+              h('label', { class: 'field' }, [h('span', { text: 'Colore' }), sel]),
+              body,
+              h('div', { class: 'modal-actions' }, [
+                h('button', { type: 'button', class: 'btn', text: 'Chiudi', onclick: function () { finish(null); } }),
+                h('button', {
+                  type: 'button',
+                  class: 'btn primary',
+                  text: 'Aggiungi la scala come variabili',
+                  onclick: function () { finish({ idx: Number(sel.value) }); }
+                })
+              ])
+            ])
+          );
+          render();
+        }).then(function (res) {
+          if (!res) return;
+          var v = colors[res.idx] || colors[0];
+          var scale = S.colorScale(S.normalizeHex(v.valore));
+          st.data.gruppi.push({
+            id: S.uid('g'),
+            nome: 'Scala ' + v.nome.replace(/^--[a-z0-9]+-/i, ''),
+            variabili: scale.map(function (x) {
+              return { id: S.uid('v'), nome: v.nome + '-' + x.passo, valore: x.hex, tipo: 'colore' };
+            })
+          });
+          renderGroups();
+          onChange();
+          App.toast('Aggiunti 10 passi della scala');
+        });
+      });
+      formatsBtn.addEventListener('click', function () {
+        App.askChoice({
+          title: 'Esporta le variabili come…',
+          message: 'Bootstrap: usa i nomi come --cat-color-primary e --cat-radius-md; le variabili che puntano ad altre (var(…)) vengono saltate.',
+          choices: [
+            { value: 'cancel', label: 'Annulla' },
+            { value: 'json', label: 'JSON' },
+            { value: 'scss', label: 'SCSS' },
+            { value: 'bootstrap', label: 'Override Bootstrap', kind: 'primary' }
+          ]
+        }).then(function (f) {
+          if (f && f !== 'cancel') exportWith('exportRootFormat', [f, st.data]);
+        });
       });
       tokensBtn.addEventListener('click', function () {
         exportWith('exportTokens', [st.data]);

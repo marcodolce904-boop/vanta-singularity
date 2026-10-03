@@ -24,6 +24,7 @@ const NAMES = [
   'exportItem',
   'exportCss',
   'exportTokens',
+  'exportRootFormat',
   'exportAll',
   'importFolder',
   'copy'

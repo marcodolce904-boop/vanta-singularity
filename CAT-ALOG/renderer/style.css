@@ -306,3 +306,13 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.5); }
 .contrast li { align-items: baseline; }
 .contrast li span:first-child { overflow-wrap: anywhere; }
 .contrast li span:last-child { flex: none; font-size: 12px; white-space: nowrap; }
+
+.fav-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ui-muted); }
+.star-btn[aria-pressed="true"] { border-color: var(--ui-accent); color: var(--ui-accent); }
+.global-results { max-height: 50vh; overflow-y: auto; margin: 10px 0; }
+
+.color-tools h3 { margin: 12px 0 6px; font-size: 13px; }
+.sw-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.sw-cell { display: grid; gap: 2px; justify-items: center; }
+.sw { display: block; width: 44px; height: 32px; border: 1px solid var(--ui-border); border-radius: 6px; }
+.sw-cell small { font-size: 11px; }

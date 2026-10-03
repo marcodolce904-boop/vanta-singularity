@@ -88,6 +88,75 @@
     });
   }
 
+  /* ---------- ricerca in tutte le schede (Ctrl/Cmd+K) ---------- */
+
+  function norm(t) {
+    return window.CatalogoApp.S.str(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  function globalSearch() {
+    var itemTabs = tabs.filter(function (t) { return typeof t.select === 'function'; });
+    return Promise.all(
+      itemTabs.map(function (t) {
+        return Promise.resolve(window.api.list(t.id)).then(function (items) {
+          return items.map(function (it) { return { tab: t, it: it }; });
+        });
+      })
+    )
+      .then(function (parts) {
+        var all = [].concat.apply([], parts);
+        return App.modal(function (d, finish) {
+          var input = h('input', { type: 'search', placeholder: 'Cerca in tutte le schede…', 'aria-label': 'Cerca in tutte le schede' });
+          var list = h('ul', { class: 'list global-results' });
+          function render() {
+            var q = norm(input.value);
+            var hits = all.filter(function (x) {
+              return !q || norm(x.it.nome + ' ' + x.it.descrizione + ' ' + x.it.tag.join(' ') + ' ' + x.tab.label).indexOf(q) !== -1;
+            });
+            hits.sort(function (a, b) { return (b.it.preferito ? 1 : 0) - (a.it.preferito ? 1 : 0); });
+            list.textContent = '';
+            if (!hits.length) list.appendChild(h('li', { class: 'empty', text: 'Nessun risultato.' }));
+            hits.slice(0, 30).forEach(function (x) {
+              list.appendChild(
+                h('li', null, [
+                  h('button', {
+                    type: 'button',
+                    class: 'list-btn',
+                    onclick: function () { finish(x); }
+                  }, [(x.it.preferito ? '★ ' : '') + x.it.nome, h('small', { text: x.tab.label + (x.it.descrizione ? ' · ' + x.it.descrizione : '') })])
+                ])
+              );
+            });
+          }
+          input.addEventListener('input', render);
+          input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+              var first = list.querySelector('.list-btn');
+              if (first) first.click();
+            }
+          });
+          d.appendChild(
+            h('div', { class: 'modal-form' }, [
+              h('h2', { text: 'Cerca' }),
+              input,
+              list,
+              h('div', { class: 'modal-actions' }, [
+                h('button', { type: 'button', class: 'btn', text: 'Chiudi', onclick: function () { finish(null); } })
+              ])
+            ])
+          );
+          render();
+          setTimeout(function () { input.focus(); }, 0);
+        });
+      })
+      .then(function (hit) {
+        if (!hit) return;
+        return showTab(hit.tab.id).then(function () {
+          if (current === hit.tab) return hit.tab.select(hit.it.id);
+        });
+      });
+  }
+
   /* ---------- esporta tutto ---------- */
 
   function exportAll() {
@@ -187,6 +256,11 @@
 
   document.addEventListener('keydown', function (e) {
     if (!(e.ctrlKey || e.metaKey) || e.altKey || document.querySelector('dialog[open]')) return;
+    if (e.key === 'k' || e.key === 'K') {
+      e.preventDefault();
+      globalSearch();
+      return;
+    }
     if (e.key === 's' || e.key === 'S') {
       e.preventDefault();
       if (current) current.save();
@@ -206,6 +280,7 @@
     }
   });
 
+  document.getElementById('btn-search').addEventListener('click', globalSearch);
   document.getElementById('btn-export-all').addEventListener('click', exportAll);
   document.getElementById('btn-settings').addEventListener('click', openSettings);
 
@@ -214,6 +289,7 @@
   App.showTab = showTab;
   App.anyDirty = anyDirty;
   App.exportAll = exportAll;
+  App.globalSearch = globalSearch;
   App.openSettings = openSettings;
   App.reloadAll = reloadAll;
 

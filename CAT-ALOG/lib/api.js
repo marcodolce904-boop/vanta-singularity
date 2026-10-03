@@ -26,6 +26,7 @@ const API_NAMES = [
   'exportItem',
   'exportCss',
   'exportTokens',
+  'exportRootFormat',
   'exportAll',
   'importFolder',
   'copy'
@@ -138,6 +139,16 @@ function createApi(opzioni) {
     exportTokens: async function (data) {
       const testo = store.tokensText(data);
       const file = await ui.chooseSaveFile('figma-tokens.json', [{ name: 'JSON', extensions: ['json'] }]);
+      if (!file) return { annullato: true };
+      fs.writeFileSync(file, testo, 'utf8');
+      return { annullato: false, percorso: file };
+    },
+
+    exportRootFormat: async function (format, data) {
+      const testo = store.rootFormatText(format, data);
+      const nome = { scss: 'root.scss', json: 'root.json', bootstrap: 'bootstrap-override.scss' }[format];
+      const ext = format === 'json' ? 'json' : 'scss';
+      const file = await ui.chooseSaveFile(nome, [{ name: ext.toUpperCase(), extensions: [ext] }]);
       if (!file) return { annullato: true };
       fs.writeFileSync(file, testo, 'utf8');
       return { annullato: false, percorso: file };

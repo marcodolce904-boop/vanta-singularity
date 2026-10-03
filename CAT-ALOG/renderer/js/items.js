@@ -63,7 +63,8 @@
       snapshot: '',
       active: 'html',
       withGlobal: true,
-      global: null
+      global: null,
+      onlyFav: false
     };
 
     var root = h('section', {
@@ -79,8 +80,9 @@
     var addBtn = h('button', { type: 'button', class: 'btn primary', text: '+ Nuovo' });
     var listEl = h('ul', { class: 'list' });
     var importBtn = h('button', { type: 'button', class: 'btn small import-btn', text: 'Importa…' });
+    var favChk = h('input', { type: 'checkbox' });
     root.appendChild(
-      h('div', { class: 'col-list' }, [h('div', { class: 'list-head' }, [search, addBtn]), h('div', { class: 'btn-row' }, [importBtn]), listEl])
+      h('div', { class: 'col-list' }, [h('div', { class: 'list-head' }, [search, addBtn]), h('div', { class: 'btn-row' }, [importBtn, h('label', { class: 'fav-filter' }, [favChk, '★ Solo preferiti'])]), listEl])
     );
 
     /* ----- colonna anteprima ----- */
@@ -96,6 +98,7 @@
     var status = h('span', { class: 'status', role: 'status' });
     var saveBtn = h('button', { type: 'button', class: 'btn primary', text: 'Salva' });
     var revertBtn = h('button', { type: 'button', class: 'btn', text: 'Ripristina' });
+    var starBtn = h('button', { type: 'button', class: 'btn star-btn', 'aria-pressed': 'false', text: '☆ Preferito' });
     var fNome = h('input', { type: 'text' });
     var fDesc = h('input', { type: 'text' });
     var fTags = h('input', { type: 'text', placeholder: 'flex, card, griglia' });
@@ -139,7 +142,7 @@
 
     root.appendChild(
       h('div', { class: 'col-editor' }, [
-        h('div', { class: 'toolbar' }, [status, h('span', { class: 'spacer' }), revertBtn, saveBtn]),
+        h('div', { class: 'toolbar' }, [status, h('span', { class: 'spacer' }), starBtn, revertBtn, saveBtn]),
         field('Nome', fNome),
         field('Descrizione', fDesc),
         field('Etichette (separate da virgola)', fTags),
@@ -162,7 +165,8 @@
         tag: fTags.value,
         html: st.draft.html,
         css: st.draft.css,
-        js: hasJs ? st.draft.js : ''
+        js: hasJs ? st.draft.js : '',
+        preferito: !!st.draft.pref
       };
     }
 
@@ -200,10 +204,17 @@
       if (st.draft) preview.refresh();
     }, 250);
 
+    function syncStar() {
+      var on = !!(st.draft && st.draft.pref);
+      starBtn.setAttribute('aria-pressed', String(on));
+      starBtn.textContent = on ? '★ Preferito' : '☆ Preferito';
+    }
+
     function load(o) {
       st.id = o.id;
       st.saved = o;
-      st.draft = { html: o.html, css: o.css, js: o.js };
+      st.draft = { html: o.html, css: o.css, js: o.js, pref: !!o.preferito };
+      syncStar();
       fNome.value = o.nome;
       fDesc.value = o.descrizione;
       fTags.value = (o.tag || []).join(', ');
@@ -226,7 +237,11 @@
     function renderList() {
       var q = norm(st.filter);
       var shown = st.items.filter(function (it) {
+        if (st.onlyFav && !it.preferito) return false;
         return !q || norm(it.nome + ' ' + it.descrizione + ' ' + it.tag.join(' ')).indexOf(q) !== -1;
+      });
+      shown.sort(function (a, b) {
+        return (b.preferito ? 1 : 0) - (a.preferito ? 1 : 0);
       });
       listEl.textContent = '';
       if (!shown.length) {
@@ -248,7 +263,7 @@
                   select(it.id);
                 }
               },
-              [it.nome, it.descrizione ? h('small', { text: it.descrizione }) : null]
+              [(it.preferito ? '★ ' : '') + it.nome, it.descrizione ? h('small', { text: it.descrizione }) : null]
             )
           ])
         );
@@ -478,6 +493,16 @@
 
     addBtn.addEventListener('click', create);
     importBtn.addEventListener('click', importAny);
+    favChk.addEventListener('change', function () {
+      st.onlyFav = favChk.checked;
+      renderList();
+    });
+    starBtn.addEventListener('click', function () {
+      if (!st.draft) return;
+      st.draft.pref = !st.draft.pref;
+      syncStar();
+      updateStatus();
+    });
     saveBtn.addEventListener('click', save);
     revertBtn.addEventListener('click', revert);
     dupBtn.addEventListener('click', duplicate);
@@ -538,6 +563,8 @@
       save: save,
       discard: discard,
       reset: reset,
+      select: select,
+      kind: kind,
       state: st
     };
     return tab;

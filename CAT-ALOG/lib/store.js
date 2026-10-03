@@ -148,7 +148,8 @@ function createStore(dataDir) {
       nome: S.str(m.nome) || id,
       descrizione: S.str(m.descrizione),
       tag: Array.isArray(m.tag) ? m.tag.map(String) : [],
-      modificato: S.str(m.modificato)
+      modificato: S.str(m.modificato),
+      preferito: m.preferito === true
     };
   }
 
@@ -185,6 +186,7 @@ function createStore(dataDir) {
     const nome = S.str(d.nome).trim() || 'Senza nome';
     const now = new Date().toISOString();
     let creato = now;
+    let pref = d.preferito === true;
     let theId = id;
     if (theId == null) {
       const existing = new Set(fs.existsSync(p(kind)) ? fs.readdirSync(p(kind)) : []);
@@ -194,6 +196,7 @@ function createStore(dataDir) {
       if (!fs.existsSync(p(kind, theId))) throw new Error('Elemento non trovato: ' + theId);
       const old = readJsonSafe(p(kind, theId, 'meta.json'), null);
       if (old && old.creato) creato = old.creato;
+      if (d.preferito === undefined && old) pref = old.preferito === true;
     }
     const dir = p(kind, theId);
     fs.mkdirSync(dir, { recursive: true });
@@ -204,6 +207,7 @@ function createStore(dataDir) {
       nome: nome,
       descrizione: S.str(d.descrizione),
       tag: parseTags(d.tag),
+      preferito: pref,
       creato: creato,
       modificato: now
     }, null, 2) + '\n');
@@ -342,6 +346,15 @@ function createStore(dataDir) {
       return S.buildClassiCss(data ? S.normalizeClassi(data) : getClassi());
     }
     throw new Error('Tipo di CSS non valido');
+  }
+
+  function rootFormatText(format, data) {
+    const norm = data ? S.normalizeRoot(data) : getRoot();
+    if (data) checkRoot(norm);
+    if (format === 'scss') return S.buildRootScss(norm);
+    if (format === 'json') return S.buildRootJson(norm);
+    if (format === 'bootstrap') return S.buildBootstrapOverride(norm);
+    throw new Error('Formato non valido: ' + format);
   }
 
   function tokensText(data) {
@@ -511,6 +524,7 @@ function createStore(dataDir) {
     deletePreset: deletePreset,
     cssText: cssText,
     tokensText: tokensText,
+    rootFormatText: rootFormatText,
     exportItem: exportItem,
     exportAll: exportAll,
     importFolder: importFolder

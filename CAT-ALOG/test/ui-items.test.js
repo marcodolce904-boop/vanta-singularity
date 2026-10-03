@@ -317,3 +317,40 @@ test('gli errori dell\'API arrivano come messaggi leggibili', async (t) => {
   assert.equal(H.d.getElementById('toast').className, 'errore');
   assert.match(P.status(), /Modifiche non salvate/, 'dopo un errore la bozza resta com\'era');
 });
+
+test('preferiti: stella, salvataggio su disco, filtro e ordine', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  const P = await open(H, 'strutture', 'Due colonne');
+  const star = P.panel.querySelector('.star-btn');
+  assert.equal(star.getAttribute('aria-pressed'), 'false');
+  H.click(star);
+  assert.equal(star.getAttribute('aria-pressed'), 'true');
+  assert.match(P.status(), /Modifiche non salvate/);
+  H.click(P.btn('Salva'));
+  await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
+  assert.equal(JSON.parse(read(H.dataDir, 'strutture', 'due-colonne-50-50', 'meta.json')).preferito, true);
+  await H.waitFor(() => P.items()[0].textContent.startsWith('★ Due colonne 50/50'), 'preferiti in cima');
+
+  const chk = P.panel.querySelector('.fav-filter input');
+  chk.checked = true;
+  chk.dispatchEvent(new H.w.Event('change', { bubbles: true }));
+  assert.equal(P.items().length, 1);
+  assert.deepEqual(H.state.errors, []);
+});
+
+test('Ctrl+K cerca in tutte le schede e apre l\'elemento', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  H.key(H.d.body, 'k', { ctrlKey: true });
+  await H.waitFor(() => H.d.querySelector('dialog[open] .global-results .list-btn'), 'finestra di ricerca');
+  const input = H.d.querySelector('dialog[open] input[type="search"]');
+  H.type(input, 'bento');
+  await H.waitFor(() => H.d.querySelectorAll('dialog[open] .global-results .list-btn').length === 1, 'un risultato');
+  H.click(H.d.querySelector('dialog[open] .global-results .list-btn'));
+  await H.waitFor(() => {
+    const cur = H.tab('strutture').querySelector('.list-btn[aria-current="true"]');
+    return cur && /Bento grid/.test(cur.textContent);
+  }, 'elemento selezionato');
+  assert.deepEqual(H.state.errors, []);
+});
