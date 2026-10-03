@@ -61,7 +61,7 @@
       var copyAllBtn = h('button', { type: 'button', class: 'btn small', text: 'Copia tutto il CSS' });
       var copyGroupBtn = h('button', { type: 'button', class: 'btn small', text: 'Copia questo gruppo' });
       var sandboxText = h('textarea', { rows: 5, spellcheck: 'false', 'aria-label': 'HTML da provare' });
-      sandboxText.value = '<div class="md-container">\n  <p>Scrivi qui il tuo HTML e usa le classi del catalogo.</p>\n</div>';
+      sandboxText.value = '<div class="cat-container">\n  <p>Scrivi qui il tuo HTML e usa le classi del catalogo.</p>\n</div>';
       var preview = App.makePreview({ title: 'Prova delle classi', getDoc: sandboxDoc });
 
       root.appendChild(
@@ -195,7 +195,7 @@
       }
 
       function editRow(c, g) {
-        var n = h('input', { type: 'text', value: c.nome, placeholder: 'md-esempio', 'aria-label': 'Nome della classe, senza il punto' });
+        var n = h('input', { type: 'text', value: c.nome, placeholder: 'cat-esempio', 'aria-label': 'Nome della classe, senza il punto' });
         var d = h('input', { type: 'text', value: c.descrizione, placeholder: 'A cosa serve', 'aria-label': 'Descrizione' });
         var css = h('textarea', { rows: 6, spellcheck: 'false', 'aria-label': 'Regola CSS' });
         css.value = c.css;

@@ -200,7 +200,7 @@
       }
 
       function prefix() {
-        return (App.config && App.config.prefisso) || 'md';
+        return (App.config && App.config.prefisso) || 'cat';
       }
 
       function sampleDoc() {

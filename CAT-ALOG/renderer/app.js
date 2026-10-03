@@ -16,7 +16,7 @@
   var tabsNav = document.getElementById('tabs');
   var main = document.getElementById('main');
 
-  App.config = { dataDir: '', prefisso: 'md' };
+  App.config = { dataDir: '', prefisso: 'cat' };
   App.tabs = tabs;
 
   function anyDirty() {
@@ -161,7 +161,7 @@
             })
           ]),
           h('label', { class: 'field' }, [
-            h('span', { text: 'Prefisso del file CSS delle classi (esempio: md → md-classi.css)' }),
+            h('span', { text: 'Prefisso del file CSS delle classi (esempio: cat → cat-classi.css)' }),
             prefixInput
           ]),
           h('div', { class: 'btn-row' }, [

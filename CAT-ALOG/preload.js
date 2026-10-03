@@ -25,6 +25,7 @@ const NAMES = [
   'exportCss',
   'exportTokens',
   'exportAll',
+  'importFolder',
   'copy'
 ];
 

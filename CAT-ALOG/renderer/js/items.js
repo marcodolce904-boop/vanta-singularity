@@ -78,7 +78,10 @@
     var search = h('input', { type: 'search', placeholder: 'Cerca…', 'aria-label': 'Cerca in ' + cfg.label });
     var addBtn = h('button', { type: 'button', class: 'btn primary', text: '+ Nuovo' });
     var listEl = h('ul', { class: 'list' });
-    root.appendChild(h('div', { class: 'col-list' }, [h('div', { class: 'list-head' }, [search, addBtn]), listEl]));
+    var importBtn = h('button', { type: 'button', class: 'btn small import-btn', text: 'Importa…' });
+    root.appendChild(
+      h('div', { class: 'col-list' }, [h('div', { class: 'list-head' }, [search, addBtn]), h('div', { class: 'btn-row' }, [importBtn]), listEl])
+    );
 
     /* ----- colonna anteprima ----- */
     var globalChk = h('input', { type: 'checkbox', checked: true });
@@ -311,6 +314,84 @@
         });
     }
 
+    /* Importa: codice incollato (pagina, frammento, blocchi di una chat) o cartella. */
+    function createFrom(data) {
+      return App.run(function () {
+        return window.api.save(kind, null, {
+          nome: data.nome,
+          descrizione: 'Importato',
+          tag: ['importato'],
+          html: data.html,
+          css: data.css,
+          js: hasJs ? data.js : ''
+        });
+      }).then(function (o) {
+        if (!o) return;
+        st.filter = '';
+        search.value = '';
+        return refreshList().then(function () {
+          load(o);
+          var extra = (data.avvisi || []).concat(!hasJs && data.js ? ['Questa scheda non ha il JS: l\'ho lasciato fuori.'] : []);
+          App.toast('Importato «' + o.nome + '»' + (extra.length ? ' — ' + extra[0] : ''), extra.length > 0);
+        });
+      });
+    }
+
+    function importCode() {
+      return App.askForm({
+        title: 'Importa codice in «' + cfg.label + '»',
+        intro: 'Incolla una pagina intera, un frammento, o i blocchi ``` copiati da una chat (v0, Magic Patterns…). Lo divido in HTML, CSS e JS.',
+        fields: [
+          { name: 'nome', label: 'Nome', value: '' },
+          { name: 'codice', label: 'Codice', type: 'textarea', rows: 10 }
+        ],
+        okLabel: 'Importa',
+        validate: function (v) {
+          if (!v.nome.trim()) return 'Scrivi un nome';
+          if (!v.codice.trim()) return 'Incolla del codice';
+          return null;
+        }
+      }).then(function (v) {
+        if (!v) return;
+        var r = S.splitCode(v.codice);
+        if (!r.html && !r.css && !r.js) {
+          App.toast('Non ho trovato né HTML, né CSS, né JS', true);
+          return;
+        }
+        r.nome = v.nome;
+        return createFrom(r);
+      });
+    }
+
+    function importDir() {
+      return App.run(function () {
+        return window.api.importFolder();
+      }).then(function (r) {
+        if (!r || r.annullato) return;
+        return createFrom(r);
+      });
+    }
+
+    function importAny() {
+      return App.guardDirty(tab)
+        .then(function (ok) {
+          if (!ok) return null;
+          return App.askChoice({
+            title: 'Importa in «' + cfg.label + '»',
+            message: 'Da dove prendo il codice?',
+            choices: [
+              { value: 'cancel', label: 'Annulla' },
+              { value: 'dir', label: 'Da una cartella' },
+              { value: 'code', label: 'Da codice incollato', kind: 'primary' }
+            ]
+          });
+        })
+        .then(function (v) {
+          if (v === 'code') return importCode();
+          if (v === 'dir') return importDir();
+        });
+    }
+
     function save() {
       if (!st.draft) return Promise.resolve(true);
       return App.run(function () {
@@ -396,6 +477,7 @@
     /* ----- collegamenti ----- */
 
     addBtn.addEventListener('click', create);
+    importBtn.addEventListener('click', importAny);
     saveBtn.addEventListener('click', save);
     revertBtn.addEventListener('click', revert);
     dupBtn.addEventListener('click', duplicate);
@@ -474,6 +556,22 @@
     label: 'Componenti',
     create: function () {
       return createItemTab('componenti', { label: 'Componenti', hasJs: true });
+    }
+  });
+
+  App.defineTab({
+    id: 'animazioni',
+    label: 'Animazioni',
+    create: function () {
+      return createItemTab('animazioni', { label: 'Animazioni', hasJs: true });
+    }
+  });
+
+  App.defineTab({
+    id: 'interazioni',
+    label: 'Interazioni',
+    create: function () {
+      return createItemTab('interazioni', { label: 'Interazioni', hasJs: true });
     }
   });
 })();

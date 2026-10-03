@@ -42,18 +42,18 @@ test('Root: gruppi, variabili, anteprima, CSS e contrasto', async (t) => {
   assert.equal(P.rows().length, totale);
   assert.equal(P.status(), 'Tutto salvato');
 
-  assert.equal(P.text('--md-color-primary').value, '#2f6f4e');
-  assert.equal(P.picker('--md-color-primary').value, '#2f6f4e');
-  assert.equal(P.picker('--md-space-1'), null, 'solo i colori hanno il selettore');
+  assert.equal(P.text('--cat-color-primary').value, '#2f6f4e');
+  assert.equal(P.picker('--cat-color-primary').value, '#2f6f4e');
+  assert.equal(P.picker('--cat-space-1'), null, 'solo i colori hanno il selettore');
   assert.match(P.out(), /:root \{/);
-  assert.match(P.out(), /--md-color-primary: #2f6f4e;/);
+  assert.match(P.out(), /--cat-color-primary: #2f6f4e;/);
 
   const doc = P.frame.srcdoc;
-  ['var(--md-color-primary)', 'var(--md-space-3)', 'var(--md-shadow-md)', 'var(--md-radius-lg)', 'font-family:var(--md-font-heading)', 'font-size:var(--md-text-xl)'].forEach((frag) => {
+  ['var(--cat-color-primary)', 'var(--cat-space-3)', 'var(--cat-shadow-md)', 'var(--cat-radius-lg)', 'font-family:var(--cat-font-heading)', 'font-size:var(--cat-text-xl)'].forEach((frag) => {
     assert.ok(doc.includes(frag), 'nell\'anteprima manca ' + frag);
   });
-  assert.ok(doc.includes('--md-color-primary: #2f6f4e;'), 'le variabili sono nell\'anteprima');
-  assert.ok(!doc.includes('var(--md-weight-bold)'), 'i valori senza una vista non entrano');
+  assert.ok(doc.includes('--cat-color-primary: #2f6f4e;'), 'le variabili sono nell\'anteprima');
+  assert.ok(!doc.includes('var(--cat-weight-bold)'), 'i valori senza una vista non entrano');
 
   const righe = P.contrast();
   assert.ok(righe.length > 0);
@@ -66,26 +66,26 @@ test('Root: cambiare un colore, salvare, e ritrovarlo nelle altre schede', async
   const P = await open();
   t.after(() => P.H.close());
   const { H } = P;
-  const nome = '--md-color-primary';
+  const nome = '--cat-color-primary';
 
   H.type(P.text(nome), '#ff0000');
   assert.equal(P.picker(nome).value, '#ff0000', 'il selettore segue il testo');
   assert.match(P.status(), /Modifiche non salvate/);
-  await H.waitFor(() => P.out().includes('--md-color-primary: #ff0000;'), 'CSS generato aggiornato');
-  await H.waitFor(() => P.frame.srcdoc.includes('--md-color-primary: #ff0000;'), 'anteprima aggiornata');
+  await H.waitFor(() => P.out().includes('--cat-color-primary: #ff0000;'), 'CSS generato aggiornato');
+  await H.waitFor(() => P.frame.srcdoc.includes('--cat-color-primary: #ff0000;'), 'anteprima aggiornata');
   assert.ok(!P.saved().includes('#ff0000'), 'su disco non c\'è ancora');
 
   H.type(P.picker(nome), '#00ff00');
   assert.equal(P.text(nome).value, '#00ff00', 'il testo segue il selettore');
   H.click(P.btn('Salva'));
   await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
-  assert.match(P.saved(), /--md-color-primary: #00ff00;/);
+  assert.match(P.saved(), /--cat-color-primary: #00ff00;/);
   assert.equal(P.json().gruppi[0].variabili.find((v) => v.nome === nome).valore, '#00ff00');
   assert.equal(H.toast(), 'Salvato');
   assert.ok(fs.existsSync(path.join(H.dataDir, 'root', 'root.json.bak')));
 
   await H.showTab('strutture');
-  await H.waitFor(() => H.tab('strutture').querySelector('iframe').srcdoc.includes('--md-color-primary: #00ff00;'), 'anteprima di Strutture');
+  await H.waitFor(() => H.tab('strutture').querySelector('iframe').srcdoc.includes('--cat-color-primary: #00ff00;'), 'anteprima di Strutture');
   assert.deepEqual(H.state.errors, []);
 });
 
@@ -95,35 +95,35 @@ test('Root: valori e nomi non validi vengono segnalati e non si salvano', async 
   const { H } = P;
   const prima = P.saved();
 
-  H.type(P.text('--md-space-1'), 'red; } body { display: none');
-  assert.match(P.err('--md-space-1'), /parentesi graffe/);
+  H.type(P.text('--cat-space-1'), 'red; } body { display: none');
+  assert.match(P.err('--cat-space-1'), /parentesi graffe/);
   H.click(P.btn('Salva'));
   await H.waitFor(() => /parentesi graffe/.test(H.toast()), 'errore al salvataggio');
   assert.equal(H.d.getElementById('toast').className, 'errore');
   assert.equal(P.saved(), prima);
   assert.doesNotMatch(P.out(), /display: none/, 'il CSS generato salta la variabile non valida');
-  H.type(P.text('--md-space-1'), 'x; y');
-  assert.match(P.err('--md-space-1'), /punto e virgola/);
-  H.type(P.text('--md-space-1'), '');
-  assert.match(P.err('--md-space-1'), /Valore vuoto/);
-  H.type(P.text('--md-space-1'), '0.25rem');
-  assert.equal(P.err('--md-space-1'), '');
+  H.type(P.text('--cat-space-1'), 'x; y');
+  assert.match(P.err('--cat-space-1'), /punto e virgola/);
+  H.type(P.text('--cat-space-1'), '');
+  assert.match(P.err('--cat-space-1'), /Valore vuoto/);
+  H.type(P.text('--cat-space-1'), '0.25rem');
+  assert.equal(P.err('--cat-space-1'), '');
 
   // un colore scritto senza il # non è un colore CSS valido
-  H.type(P.text('--md-color-primary'), '2f6f4e');
-  assert.match(P.err('--md-color-primary'), /Manca il #/);
-  H.type(P.text('--md-color-primary'), '#2f6f4e');
-  assert.equal(P.err('--md-color-primary'), '');
+  H.type(P.text('--cat-color-primary'), '2f6f4e');
+  assert.match(P.err('--cat-color-primary'), /Manca il #/);
+  H.type(P.text('--cat-color-primary'), '#2f6f4e');
+  assert.equal(P.err('--cat-color-primary'), '');
 
-  const nomeInput = P.row('--md-space-2').querySelector('.var-name');
-  H.type(nomeInput, '--md-space-3');
-  assert.match(P.err('--md-space-3'), /duplicato/);
+  const nomeInput = P.row('--cat-space-2').querySelector('.var-name');
+  H.type(nomeInput, '--cat-space-3');
+  assert.match(P.err('--cat-space-3'), /duplicato/);
   H.click(P.btn('Salva'));
   await H.waitFor(() => /duplicata/.test(H.toast()), 'errore duplicata');
   H.type(nomeInput, 'senza-trattini');
   assert.match(P.err('senza-trattini'), /Nome variabile non valido/);
-  H.type(nomeInput, '--md-space-2');
-  assert.equal(P.err('--md-space-2'), '');
+  H.type(nomeInput, '--cat-space-2');
+  assert.equal(P.err('--cat-space-2'), '');
   assert.equal(P.saved(), prima);
   assert.deepEqual(H.state.errors, []);
 });
@@ -139,9 +139,9 @@ test('Root: aggiungere e togliere variabili e gruppi', async (t) => {
   let righe = P.groups()[2].querySelectorAll('.var-row');
   assert.equal(righe.length, prima + 1);
   const nuova = righe[righe.length - 1];
-  assert.equal(nuova.querySelector('.var-name').value, '--md-', 'il nome parte dal prefisso');
+  assert.equal(nuova.querySelector('.var-name').value, '--cat-', 'il nome parte dal prefisso');
   assert.equal(nuova.parentNode.querySelector('.row-error').textContent, '', 'nessun errore su una riga appena creata');
-  H.type(nuova.querySelector('.var-name'), '--md-nuova');
+  H.type(nuova.querySelector('.var-name'), '--cat-nuova');
   H.type(nuova.querySelector('.var-text'), '2px');
 
   H.click(H.button(P.groups()[2], '+ Colore'));
@@ -149,20 +149,20 @@ test('Root: aggiungere e togliere variabili e gruppi', async (t) => {
   const colore = righe[righe.length - 1];
   assert.equal(colore.querySelector('.var-text').value, '#000000');
   assert.ok(colore.querySelector('input[type="color"]'));
-  H.type(colore.querySelector('.var-name'), '--md-color-extra');
+  H.type(colore.querySelector('.var-name'), '--cat-color-extra');
 
   H.click(P.btn('Salva'));
   await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
-  assert.match(P.saved(), /--md-nuova: 2px;/);
-  assert.match(P.saved(), /--md-color-extra: #000000;/);
-  assert.equal(P.json().gruppi[2].variabili.find((v) => v.nome === '--md-color-extra').tipo, 'colore');
+  assert.match(P.saved(), /--cat-nuova: 2px;/);
+  assert.match(P.saved(), /--cat-color-extra: #000000;/);
+  assert.equal(P.json().gruppi[2].variabili.find((v) => v.nome === '--cat-color-extra').tipo, 'colore');
 
-  H.click(H.button(P.row('--md-nuova'), 'Togli'));
-  assert.equal(P.row('--md-nuova'), undefined);
+  H.click(H.button(P.row('--cat-nuova'), 'Togli'));
+  assert.equal(P.row('--cat-nuova'), undefined);
   assert.match(P.status(), /Modifiche non salvate/);
   H.click(P.btn('Ripristina'));
   await H.answer('Annulla le modifiche');
-  assert.ok(P.row('--md-nuova'), 'Ripristina la riporta');
+  assert.ok(P.row('--cat-nuova'), 'Ripristina la riporta');
 
   const n = P.groups().length;
   H.click(P.btn('+ Gruppo'));
@@ -184,7 +184,7 @@ test('Root: preset salvati, applicati (uniti alla bozza) ed eliminati', async (t
   t.after(() => P.H.close());
   const { H } = P;
   const applica = () => P.btn('Applica');
-  const nome = '--md-color-primary';
+  const nome = '--cat-color-primary';
   assert.equal(P.select.options.length, 1);
   assert.match(P.select.options[0].textContent, /Nessun preset/);
   assert.equal(applica().disabled, true);
@@ -211,17 +211,17 @@ test('Root: preset salvati, applicati (uniti alla bozza) ed eliminati', async (t
   // un preset con una variabile in più: applicandolo la variabile torna
   H.click(H.button(P.groups()[2], '+ Variabile'));
   const nuova = Array.from(P.groups()[2].querySelectorAll('.var-row')).pop();
-  H.type(nuova.querySelector('.var-name'), '--md-extra');
+  H.type(nuova.querySelector('.var-name'), '--cat-extra');
   H.type(nuova.querySelector('.var-text'), '9px');
   H.click(P.btn('Salva come preset'));
   await H.fillDialog({ nome: 'Con extra' }, 'Salva preset');
   await H.noDialog();
   await H.waitFor(() => P.select.value === 'con-extra');
-  H.click(H.button(P.row('--md-extra'), 'Togli'));
-  assert.equal(P.row('--md-extra'), undefined);
+  H.click(H.button(P.row('--cat-extra'), 'Togli'));
+  assert.equal(P.row('--cat-extra'), undefined);
   H.click(applica());
   await H.waitFor(() => /1 variabili aggiunte/.test(H.toast()), 'variabile riaggiunta');
-  assert.equal(P.text('--md-extra').value, '9px');
+  assert.equal(P.text('--cat-extra').value, '9px');
 
   // stesso nome: chiede se sovrascrivere
   H.click(P.btn('Salva come preset'));
@@ -230,7 +230,7 @@ test('Root: preset salvati, applicati (uniti alla bozza) ed eliminati', async (t
   assert.match(dlg.textContent, /Esiste già/);
   H.click(H.button(dlg, 'Annulla'));
   await H.noDialog();
-  assert.equal(JSON.parse(read(H.dataDir, 'root', 'presets', 'palette-uno.json')).gruppi[2].variabili.some((v) => v.nome === '--md-extra'), false);
+  assert.equal(JSON.parse(read(H.dataDir, 'root', 'presets', 'palette-uno.json')).gruppi[2].variabili.some((v) => v.nome === '--cat-extra'), false);
 
   // elimina
   H.click(P.btn('Elimina preset'));
@@ -247,12 +247,12 @@ test('Root: il controllo contrasto segnala i colori sotto AA', async (t) => {
   t.after(() => P.H.close());
   const { H } = P;
   assert.equal(P.panel.querySelectorAll('.contrast .ko').length, 0, 'i dati di esempio passano');
-  H.type(P.text('--md-color-text'), '#eeeeee');
+  H.type(P.text('--cat-color-text'), '#eeeeee');
   await H.waitFor(() => P.panel.querySelectorAll('.contrast .ko').length > 0, 'contrasto basso segnalato');
   const ko = P.panel.querySelector('.contrast .ko').textContent;
   assert.match(ko, /sotto AA/);
-  assert.match(ko, /--md-color-text|:1/);
-  H.type(P.text('--md-color-text'), '#111111');
+  assert.match(ko, /--cat-color-text|:1/);
+  H.type(P.text('--cat-color-text'), '#111111');
   await H.waitFor(() => P.panel.querySelectorAll('.contrast .ko').length === 0, 'tornato a posto');
 });
 
@@ -260,7 +260,7 @@ test('Root: copia ed esporta CSS e token per Figma', async (t) => {
   const P = await open();
   t.after(() => P.H.close());
   const { H } = P;
-  H.type(P.text('--md-color-primary'), '#abcdef');
+  H.type(P.text('--cat-color-primary'), '#abcdef');
   await H.waitFor(() => P.out().includes('#abcdef'));
 
   H.click(P.btn('Copia :root'));
@@ -284,7 +284,7 @@ test('Root: copia ed esporta CSS e token per Figma', async (t) => {
 
   // con un errore nella bozza non si esporta
   fs.rmSync(css);
-  H.type(P.text('--md-space-1'), 'x; y');
+  H.type(P.text('--cat-space-1'), 'x; y');
   H.click(P.btn('Salva root.css'));
   await H.waitFor(() => /punto e virgola/.test(H.toast()), 'esportazione bloccata');
   assert.equal(fs.existsSync(css), false);
@@ -295,14 +295,14 @@ test('Root: uscire con modifiche non salvate chiede cosa fare', async (t) => {
   const P = await open();
   t.after(() => P.H.close());
   const { H } = P;
-  H.type(P.text('--md-color-accent'), '#112233');
+  H.type(P.text('--cat-color-accent'), '#112233');
   H.click(H.d.getElementById('tab-classi'));
   const dlg = await H.dialog();
   assert.match(dlg.textContent, /Root/);
   H.click(H.button(dlg, 'Salva e continua'));
   await H.noDialog();
   await H.waitFor(() => H.d.getElementById('tab-classi').getAttribute('aria-selected') === 'true', 'passa a Classi');
-  assert.match(P.saved(), /--md-color-accent: #112233;/);
+  assert.match(P.saved(), /--cat-color-accent: #112233;/);
   assert.equal(H.w.CatalogoApp.anyDirty(), false);
 });
 

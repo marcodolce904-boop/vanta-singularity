@@ -27,6 +27,7 @@ const API_NAMES = [
   'exportCss',
   'exportTokens',
   'exportAll',
+  'importFolder',
   'copy'
 ];
 
@@ -146,6 +147,12 @@ function createApi(opzioni) {
       const dest = await ui.chooseFolder('Dove esporto tutto il catalogo?');
       if (!dest) return { annullato: true };
       return Object.assign({ annullato: false }, store.exportAll(dest));
+    },
+
+    importFolder: async function () {
+      const dir = await ui.chooseFolder('Quale cartella HTML/CSS/JS importo?');
+      if (!dir) return { annullato: true };
+      return Object.assign({ annullato: false }, store.importFolder(dir));
     },
 
     copy: async function (testo) {

@@ -7,15 +7,15 @@ const path = require('path');
 const { boot } = require('./helpers/boot');
 const seed = require('../lib/seed');
 
-test('avvio: quattro schede, la prima è aperta e mostra il primo elemento', async (t) => {
+test('avvio: sei schede, la prima è aperta e mostra il primo elemento', async (t) => {
   const H = await boot();
   t.after(() => H.close());
   const { d } = H;
 
   const tabs = Array.from(d.querySelectorAll('#tabs [role="tab"]'));
-  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Classi', 'Root']);
-  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false']);
-  assert.deepEqual(tabs.map((b) => b.tabIndex), [0, -1, -1, -1]);
+  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Animazioni', 'Interazioni', 'Classi', 'Root']);
+  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false', 'false', 'false']);
+  assert.deepEqual(tabs.map((b) => b.tabIndex), [0, -1, -1, -1, -1, -1]);
   assert.equal(H.tab('strutture').hidden, false);
   assert.equal(H.tab('componenti').hidden, true);
   assert.equal(H.tab('strutture').getAttribute('aria-labelledby'), 'tab-strutture');
@@ -54,8 +54,8 @@ test('le schede si cambiano con clic, frecce e Ctrl+numero', async (t) => {
 
   H.key(d.body, '2', { ctrlKey: true });
   await H.waitFor(() => selected()[0] === 'tab-componenti', 'Ctrl+2');
-  H.key(d.body, '4', { metaKey: true });
-  await H.waitFor(() => selected()[0] === 'tab-root', 'Cmd+4');
+  H.key(d.body, '6', { metaKey: true });
+  await H.waitFor(() => selected()[0] === 'tab-root', 'Cmd+6');
   H.key(d.body, '9', { ctrlKey: true });
   await H.sleep(50);
   assert.deepEqual(selected(), ['tab-root'], 'un numero senza scheda non fa nulla');
@@ -79,7 +79,7 @@ test('impostazioni: cartella, apri cartella e prefisso con errori dentro la fine
   H.type(input, 'NO-no');
   H.click(H.button(dlg, 'Salva prefisso'));
   await H.waitFor(() => /Prefisso non valido/.test(dlg.textContent), 'errore nella finestra');
-  assert.equal(JSON.parse(fs.readFileSync(path.join(H.dataDir, 'catalogo.json'), 'utf8')).prefisso, 'md');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(H.dataDir, 'catalogo.json'), 'utf8')).prefisso, 'cat');
 
   H.type(input, 'ab');
   H.click(H.button(dlg, 'Salva prefisso'));
@@ -123,8 +123,8 @@ test('esporta tutto: chiede conferma se ci sono modifiche e scrive la struttura'
   await H.answer('Esporta lo stesso');
   await H.waitFor(() => /Esportato in/.test(H.toast()), 'avviso di fine esportazione');
   const out = fs.readdirSync(dest);
-  assert.deepEqual(out, ['catalogo-md']);
-  assert.ok(fs.existsSync(path.join(dest, 'catalogo-md', 'css', 'root.css')));
-  assert.ok(fs.existsSync(path.join(dest, 'catalogo-md', 'tokens', 'figma-tokens.json')));
+  assert.deepEqual(out, ['catalogo-cat']);
+  assert.ok(fs.existsSync(path.join(dest, 'catalogo-cat', 'css', 'root.css')));
+  assert.ok(fs.existsSync(path.join(dest, 'catalogo-cat', 'tokens', 'figma-tokens.json')));
   assert.deepEqual(H.state.errors, []);
 });

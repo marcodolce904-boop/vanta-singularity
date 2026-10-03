@@ -26,7 +26,7 @@ async function open() {
     frame: panel.querySelector('iframe'),
     btn: (t) => H.button(panel, t),
     saved: () => JSON.parse(read(H.dataDir, 'classi', 'classi.json')),
-    css: () => read(H.dataDir, 'classi', 'md-classi.css')
+    css: () => read(H.dataDir, 'classi', 'cat-classi.css')
   };
   return P;
 }
@@ -89,10 +89,10 @@ test('Classi: aggiungere una classe, controlli sui nomi e salvataggio', async (t
 
   H.type(nome, '.punto');
   assert.match(row.textContent, /Nome non valido/);
-  H.type(nome, 'md-nuova');
+  H.type(nome, 'cat-nuova');
   assert.doesNotMatch(row.textContent, /Nome non valido/);
   H.type(desc, 'Una classe di prova');
-  H.type(css, '.md-nuova {\n  color: rebeccapurple;\n}');
+  H.type(css, '.cat-nuova {\n  color: rebeccapurple;\n}');
 
   // nome già usato in un altro gruppo
   const esistente = seed.classi.gruppi[1].classi[0].nome;
@@ -101,16 +101,16 @@ test('Classi: aggiungere una classe, controlli sui nomi e salvataggio', async (t
   await H.waitFor(() => /duplicata/.test(H.toast()), 'errore classe duplicata');
   assert.ok(!P.saved().gruppi[0].classi.some((c) => c.descrizione === 'Una classe di prova'), 'niente è stato scritto');
 
-  H.type(nome, 'md-nuova');
+  H.type(nome, 'cat-nuova');
   H.click(H.button(row, 'Fatto'));
   assert.equal(P.panel.querySelector('li.row.editing'), null);
-  assert.ok(P.row('md-nuova'));
-  assert.match(P.row('md-nuova').textContent, /Una classe di prova/);
+  assert.ok(P.row('cat-nuova'));
+  assert.match(P.row('cat-nuova').textContent, /Una classe di prova/);
 
   H.click(P.btn('Salva'));
   await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
-  assert.ok(P.saved().gruppi[0].classi.some((c) => c.nome === 'md-nuova'));
-  assert.match(P.css(), /\.md-nuova \{\n  color: rebeccapurple;\n\}/);
+  assert.ok(P.saved().gruppi[0].classi.some((c) => c.nome === 'cat-nuova'));
+  assert.match(P.css(), /\.cat-nuova \{\n  color: rebeccapurple;\n\}/);
   assert.equal(H.toast(), 'Salvato');
   assert.ok(fs.existsSync(path.join(H.dataDir, 'classi', 'classi.json.bak')));
 
@@ -168,7 +168,7 @@ test('Classi: gruppi nuovo, rinomina ed elimina', async (t) => {
 
   H.click(P.btn('+ Classe'));
   const nome = P.panel.querySelector('li.row.editing input[type="text"]');
-  H.type(nome, 'md-mia');
+  H.type(nome, 'cat-mia');
   H.click(P.btn('Salva'));
   await H.waitFor(() => P.status() === 'Tutto salvato');
   assert.equal(P.saved().gruppi[n].nome, 'Miei bis');
@@ -215,10 +215,10 @@ test('Classi: uscire con modifiche non salvate, e provare classi non salvate', a
   const { H } = P;
   H.click(P.btn('+ Classe'));
   const row = P.panel.querySelector('li.row.editing');
-  H.type(row.querySelectorAll('input[type="text"]')[0], 'md-bozza');
-  H.type(row.querySelector('textarea'), '.md-bozza { outline: 3px solid hotpink; }');
-  H.type(P.sandbox, '<p class="md-bozza">x</p>');
-  await H.waitFor(() => P.frame.srcdoc.includes('hotpink') && P.frame.srcdoc.includes('class="md-bozza"'), 'prova con classe non salvata');
+  H.type(row.querySelectorAll('input[type="text"]')[0], 'cat-bozza');
+  H.type(row.querySelector('textarea'), '.cat-bozza { outline: 3px solid hotpink; }');
+  H.type(P.sandbox, '<p class="cat-bozza">x</p>');
+  await H.waitFor(() => P.frame.srcdoc.includes('hotpink') && P.frame.srcdoc.includes('class="cat-bozza"'), 'prova con classe non salvata');
   assert.ok(!P.css().includes('hotpink'), 'su disco non c\'è');
 
   H.click(H.d.getElementById('tab-root'));
@@ -232,7 +232,7 @@ test('Classi: uscire con modifiche non salvate, e provare classi non salvate', a
   await H.answer('Scarta le modifiche');
   await H.waitFor(() => H.d.getElementById('tab-root').getAttribute('aria-selected') === 'true', 'passa a Root');
   await H.showTab('classi');
-  assert.equal(P.row('md-bozza'), undefined, 'la bozza scartata non torna');
+  assert.equal(P.row('cat-bozza'), undefined, 'la bozza scartata non torna');
   assert.equal(P.status(), 'Tutto salvato');
 });
 
@@ -247,11 +247,11 @@ test('Classi: esporta il file CSS con la bozza', async (t) => {
   assert.equal(fs.existsSync(out), false);
   H.click(P.btn('+ Classe'));
   const row = P.panel.querySelector('li.row.editing');
-  H.type(row.querySelectorAll('input[type="text"]')[0], 'md-esporta');
-  H.type(row.querySelector('textarea'), '.md-esporta { color: red; }');
+  H.type(row.querySelectorAll('input[type="text"]')[0], 'cat-esporta');
+  H.type(row.querySelector('textarea'), '.cat-esporta { color: red; }');
   H.state.saveFile = out;
   H.click(P.btn('Esporta file CSS'));
   await H.waitFor(() => /Salvato in/.test(H.toast()), 'esportato');
-  assert.match(read(out), /\.md-esporta \{ color: red; \}/);
-  assert.ok(!P.css().includes('md-esporta'), 'il file nei dati non cambia: serve Salva');
+  assert.match(read(out), /\.cat-esporta \{ color: red; \}/);
+  assert.ok(!P.css().includes('cat-esporta'), 'il file nei dati non cambia: serve Salva');
 });

@@ -66,7 +66,7 @@ test('getConfig: cartella dei dati e prefisso, e il file di configurazione viene
   const { api, configFile, defaultDataDir } = make();
   const cfg = await api.getConfig();
   assert.equal(cfg.dataDir, path.resolve(defaultDataDir));
-  assert.equal(cfg.prefisso, 'md');
+  assert.equal(cfg.prefisso, 'cat');
   assert.equal(JSON.parse(fs.readFileSync(configFile, 'utf8')).dataDir, path.resolve(defaultDataDir));
   assert.ok((await api.list('strutture')).length > 0);
 });
@@ -139,15 +139,15 @@ test('exportCss ed exportTokens usano la bozza e i nomi di file giusti', async (
       return files[i++];
     }
   });
-  const bozza = { gruppi: [{ nome: 'g', variabili: [{ nome: '--md-color-x', valore: '#abcdef', tipo: 'colore' }] }] };
+  const bozza = { gruppi: [{ nome: 'g', variabili: [{ nome: '--cat-color-x', valore: '#abcdef', tipo: 'colore' }] }] };
   const r1 = await api.exportCss('root', bozza);
   assert.equal(r1.percorso, files[0]);
-  assert.match(fs.readFileSync(files[0], 'utf8'), /--md-color-x: #abcdef;/);
+  assert.match(fs.readFileSync(files[0], 'utf8'), /--cat-color-x: #abcdef;/);
   await api.exportCss('classi', { gruppi: [{ nome: 'G', classi: [{ nome: 'a', css: '.a { x: y; }' }] }] });
   assert.match(fs.readFileSync(files[1], 'utf8'), /\.a \{ x: y; \}/);
   await api.exportTokens(bozza);
   assert.equal(JSON.parse(fs.readFileSync(files[2], 'utf8')).global.color.x.value, '#abcdef');
-  assert.deepEqual(log.saveDialogs.map((d) => d.nome), ['root.css', 'md-classi.css', 'figma-tokens.json']);
+  assert.deepEqual(log.saveDialogs.map((d) => d.nome), ['root.css', 'cat-classi.css', 'figma-tokens.json']);
   assert.deepEqual(log.saveDialogs[0].filters || log.saveDialogs[0].filtri, [{ name: 'CSS', extensions: ['css'] }]);
   await assert.rejects(() => api.exportCss('root', { gruppi: [{ nome: 'g', variabili: [{ nome: 'no', valore: '1' }] }] }), /non valido/);
 });

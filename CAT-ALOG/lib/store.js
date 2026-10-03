@@ -7,7 +7,9 @@ const seed = require('./seed');
 
 const KINDS = {
   strutture: { js: false },
-  componenti: { js: true }
+  componenti: { js: true },
+  animazioni: { js: true },
+  interazioni: { js: true }
 };
 
 const PREFIX_RE = /^[a-z][a-z0-9]{0,11}$/;
@@ -102,7 +104,7 @@ function createStore(dataDir) {
 
   function getSettings() {
     const s = readJsonSafe(p('catalogo.json'), {}) || {};
-    return { versione: 1, prefisso: PREFIX_RE.test(S.str(s.prefisso)) ? s.prefisso : 'md' };
+    return { versione: 1, prefisso: PREFIX_RE.test(S.str(s.prefisso)) ? s.prefisso : 'cat' };
   }
 
   function writeGenerated(oldPrefix) {
@@ -121,7 +123,7 @@ function createStore(dataDir) {
     if (patch && patch.prefisso != null) {
       const pre = String(patch.prefisso).trim().toLowerCase();
       if (!PREFIX_RE.test(pre)) {
-        throw new Error('Prefisso non valido: usa lettere minuscole e numeri, massimo 12 caratteri (esempio: md)');
+        throw new Error('Prefisso non valido: usa lettere minuscole e numeri, massimo 12 caratteri (esempio: cat)');
       }
       next.prefisso = pre;
     }
@@ -393,7 +395,47 @@ function createStore(dataDir) {
       });
       counts[kind] = items.length;
     });
-    return { cartella: base, strutture: counts.strutture, componenti: counts.componenti };
+    return Object.assign({ cartella: base }, counts);
+  }
+
+  /* Legge una cartella HTML/CSS/JS qualsiasi e la restituisce divisa in html, css, js. */
+  function importFolder(dir) {
+    const base = path.resolve(String(dir || ''));
+    if (!fs.existsSync(base) || !fs.statSync(base).isDirectory()) throw new Error('Cartella non trovata');
+    const files = [];
+    (function walk(d, depth) {
+      fs.readdirSync(d, { withFileTypes: true }).forEach(function (ent) {
+        if (ent.name.charAt(0) === '.' || ent.name === 'node_modules') return;
+        const full = path.join(d, ent.name);
+        if (ent.isDirectory()) {
+          if (depth < 3) walk(full, depth + 1);
+        } else if (/\.(html?|css|js|mjs)$/i.test(ent.name) && fs.statSync(full).size <= 2 * 1024 * 1024) {
+          files.push(full);
+        }
+      });
+    })(base, 0);
+    const byExt = function (re) { return files.filter(function (f) { return re.test(f); }).sort(); };
+    const htmls = byExt(/\.html?$/i);
+    const main = htmls.find(function (f) { return /index\.html?$/i.test(f); }) || htmls[0];
+    const parts = { html: '', css: [], js: [], avvisi: [] };
+    if (main) {
+      const r = S.splitCode(readText(main));
+      parts.html = r.html;
+      if (r.css) parts.css.push(r.css);
+      if (r.js) parts.js.push(r.js);
+      parts.avvisi = r.avvisi;
+    }
+    byExt(/\.css$/i).forEach(function (f) { parts.css.push('/* ' + path.relative(base, f).replace(/\\/g, '/') + ' */\n' + readText(f).trim() + '\n'); });
+    byExt(/\.m?js$/i).forEach(function (f) { parts.js.push('/* ' + path.relative(base, f).replace(/\\/g, '/') + ' */\n' + readText(f).trim() + '\n'); });
+    if (!main && !parts.css.length && !parts.js.length) throw new Error('Nella cartella non ci sono file .html, .css o .js');
+    return {
+      nome: path.basename(base),
+      html: parts.html,
+      css: parts.css.join('\n'),
+      js: parts.js.join('\n'),
+      avvisi: parts.avvisi,
+      file: files.length
+    };
   }
 
   /* ---------- avvio ---------- */
@@ -401,13 +443,22 @@ function createStore(dataDir) {
   function init() {
     fs.mkdirSync(root, { recursive: true });
     const fresh = !fs.existsSync(p('catalogo.json'));
-    ['strutture', 'componenti', 'classi', 'root'].forEach(function (d) {
+    const added = [];
+    Object.keys(KINDS).concat(['classi', 'root']).forEach(function (d) {
+      if (!fs.existsSync(p(d))) added.push(d);
       fs.mkdirSync(p(d), { recursive: true });
     });
-    if (!fresh) return { seeded: false };
-    writeFile(p('catalogo.json'), JSON.stringify({ versione: 1, prefisso: 'md' }, null, 2) + '\n');
-    seed.strutture.forEach(function (s) { save('strutture', null, s); });
-    seed.componenti.forEach(function (s) { save('componenti', null, s); });
+    /* Cartelle nuove in una versione più recente dell'app: metto gli esempi solo lì. */
+    if (!fresh) {
+      ['animazioni', 'interazioni'].forEach(function (k) {
+        if (added.indexOf(k) !== -1) seed[k].forEach(function (s) { save(k, null, s); });
+      });
+      return { seeded: false };
+    }
+    writeFile(p('catalogo.json'), JSON.stringify({ versione: 1, prefisso: 'cat' }, null, 2) + '\n');
+    Object.keys(KINDS).forEach(function (k) {
+      seed[k].forEach(function (s) { save(k, null, s); });
+    });
     saveClassi(seed.classi);
     saveRoot(seed.root);
     return { seeded: true };
@@ -435,7 +486,8 @@ function createStore(dataDir) {
     cssText: cssText,
     tokensText: tokensText,
     exportItem: exportItem,
-    exportAll: exportAll
+    exportAll: exportAll,
+    importFolder: importFolder
   };
 }
 

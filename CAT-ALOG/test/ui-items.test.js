@@ -36,10 +36,10 @@ test('modificare HTML e CSS e salvare scrive i file veri', async (t) => {
   t.after(() => H.close());
   const P = await open(H, 'strutture', 'Due colonne');
   const id = 'due-colonne-50-50';
-  assert.match(P.code.value, /md-cols-2/);
+  assert.match(P.code.value, /cat-cols-2/);
   assert.equal(P.status(), 'Tutto salvato');
 
-  H.type(P.code, '<div class="md-cols-2"><p>NUOVO</p></div>');
+  H.type(P.code, '<div class="cat-cols-2"><p>NUOVO</p></div>');
   assert.match(P.status(), /Modifiche non salvate/);
   await H.waitFor(() => P.frame.srcdoc.includes('NUOVO'), 'anteprima aggiornata');
 
@@ -47,12 +47,12 @@ test('modificare HTML e CSS e salvare scrive i file veri', async (t) => {
   assert.equal(P.btn('CSS').getAttribute('aria-pressed'), 'true');
   assert.equal(P.btn('HTML').getAttribute('aria-pressed'), 'false');
   assert.match(P.code.value, /display: flex/);
-  H.type(P.code, '.md-cols-2 { display: grid; }');
+  H.type(P.code, '.cat-cols-2 { display: grid; }');
 
   H.click(P.btn('Salva'));
   await H.waitFor(() => P.status() === 'Tutto salvato', 'salvataggio');
-  assert.equal(read(H.dataDir, 'strutture', id, 'markup.html'), '<div class="md-cols-2"><p>NUOVO</p></div>');
-  assert.equal(read(H.dataDir, 'strutture', id, 'style.css'), '.md-cols-2 { display: grid; }');
+  assert.equal(read(H.dataDir, 'strutture', id, 'markup.html'), '<div class="cat-cols-2"><p>NUOVO</p></div>');
+  assert.equal(read(H.dataDir, 'strutture', id, 'style.css'), '.cat-cols-2 { display: grid; }');
   assert.equal(H.toast(), 'Salvato');
 
   // tornando all'HTML dopo il salvataggio si vede il testo salvato
@@ -286,13 +286,13 @@ test('anteprima: larghezze e uso di root e classi', async (t) => {
   t.after(() => H.close());
   const P = await open(H, 'strutture', 'Due colonne');
   await H.waitFor(() => P.frame.srcdoc.includes(':root {'), 'root nell\'anteprima');
-  assert.match(P.frame.srcdoc, /\.md-flex \{/);
+  assert.match(P.frame.srcdoc, /\.cat-flex \{/);
   const chk = P.panel.querySelector('.preview-bar input[type="checkbox"]');
   assert.equal(chk.checked, true);
   chk.checked = false;
   chk.dispatchEvent(new H.w.Event('change', { bubbles: true }));
   assert.doesNotMatch(P.frame.srcdoc, /:root \{/);
-  assert.match(P.frame.srcdoc, /md-cols-2__item/, 'il CSS della struttura resta');
+  assert.match(P.frame.srcdoc, /cat-cols-2__item/, 'il CSS della struttura resta');
 
   assert.equal(P.frame.style.width, '100%');
   H.click(P.btn('375 px'));

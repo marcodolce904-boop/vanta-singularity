@@ -42,12 +42,12 @@ test('colori: normalizeHex e contrasto', () => {
 test('validaVariabile accetta valori CSS veri e rifiuta quelli pericolosi', () => {
   const ok = (nome, valore) => assert.equal(S.validaVariabile({ nome, valore }), null, nome + ': ' + valore);
   const ko = (nome, valore) => assert.notEqual(S.validaVariabile({ nome, valore }), null, nome + ': ' + valore);
-  ok('--md-color-primary', '#2f6f4e');
-  ok('--md-font', '"Inter", system-ui, sans-serif');
-  ok('--md-text', 'clamp(1rem, 0.95rem + 0.25vw, 1.125rem)');
-  ok('--md-img', 'url("a;b.png")');
-  ok('--md-label', '"a;b"');
-  ko('md-color', '#fff');
+  ok('--cat-color-primary', '#2f6f4e');
+  ok('--cat-font', '"Inter", system-ui, sans-serif');
+  ok('--cat-text', 'clamp(1rem, 0.95rem + 0.25vw, 1.125rem)');
+  ok('--cat-img', 'url("a;b.png")');
+  ok('--cat-label', '"a;b"');
+  ko('cat-color', '#fff');
   ko('--', '#fff');
   ko('--a b', '#fff');
   ko('--a', '');
@@ -64,14 +64,14 @@ test('un valore come 700 non è un colore: serve il # davanti', () => {
   assert.equal(S.validaVariabile({ nome: '--c', valore: '#fff', tipo: 'colore' }), null);
   assert.equal(S.validaVariabile({ nome: '--weight', valore: '700', tipo: 'testo' }), null);
   const root = S.normalizeRoot({
-    gruppi: [{ nome: 'x', variabili: [{ nome: '--md-weight-bold', valore: '700' }, { nome: '--md-text-weight', valore: '400' }, { nome: '--md-color-bg', valore: '#ffffff' }] }]
+    gruppi: [{ nome: 'x', variabili: [{ nome: '--cat-weight-bold', valore: '700' }, { nome: '--cat-text-weight', valore: '400' }, { nome: '--cat-color-bg', valore: '#ffffff' }] }]
   });
   assert.equal(S.toTokens(root).global.weight.bold.type, 'fontWeights');
   assert.deepEqual(S.contrastReport(root), [], 'i numeri non diventano colori');
 });
 
 test('validaClasseNome', () => {
-  ['md-center', '_x', '-x', 'a1'].forEach((n) => assert.equal(S.validaClasseNome(n), true, n));
+  ['cat-center', '_x', '-x', 'a1'].forEach((n) => assert.equal(S.validaClasseNome(n), true, n));
   ['', '1a', '.md', 'a b', 'a.b', 'a>b'].forEach((n) => assert.equal(S.validaClasseNome(n), false, n));
 });
 
@@ -135,11 +135,11 @@ test('toTokens: nomi che sono prefisso di altri non si sovrascrivono', () => {
         {
           nome: 'x',
           variabili: [
-            { nome: '--md-color-text', valore: '#111111', tipo: 'colore' },
-            { nome: '--md-color-text-muted', valore: '#666666', tipo: 'colore' },
-            { nome: '--md-space-1', valore: '0.25rem' },
-            { nome: '--md-space', valore: '1rem' },
-            { nome: '--md-radius-sm', valore: '4px' }
+            { nome: '--cat-color-text', valore: '#111111', tipo: 'colore' },
+            { nome: '--cat-color-text-muted', valore: '#666666', tipo: 'colore' },
+            { nome: '--cat-space-1', valore: '0.25rem' },
+            { nome: '--cat-space', valore: '1rem' },
+            { nome: '--cat-radius-sm', valore: '4px' }
           ]
         }
       ]
@@ -157,7 +157,7 @@ test('toTokens: nomi che sono prefisso di altri non si sovrascrivono', () => {
 test('contrastReport legge i colori dai nomi', () => {
   const rep = S.contrastReport(S.normalizeRoot(seed.root));
   assert.ok(rep.length > 0);
-  const pair = rep.find((r) => r.primo === '--md-color-text' && r.sfondo === '--md-color-bg');
+  const pair = rep.find((r) => r.primo === '--cat-color-text' && r.sfondo === '--cat-color-bg');
   assert.ok(pair && pair.ok && pair.soglia === 4.5);
   rep.forEach((r) => {
     assert.equal(typeof r.rapporto, 'number');
@@ -222,4 +222,24 @@ test('i dati di esempio sono validi', () => {
       visti.add(c.nome);
     })
   );
+});
+
+test('splitCode: pagina intera, blocchi di chat e React', () => {
+  const page = '<!doctype html><html><head><title>x</title><style>p{color:red}</style></head><body><p>Ciao</p><script>run()</script></body></html>';
+  const a = S.splitCode(page);
+  assert.equal(a.html, '<p>Ciao</p>\n');
+  assert.equal(a.css, 'p{color:red}\n');
+  assert.equal(a.js, 'run()\n');
+
+  const chat = 'ecco:\n```html\n<div class="a">x</div>\n```\n```css\n.a{margin:0}\n```\n```javascript\nconsole.log(1)\n```';
+  const b = S.splitCode(chat);
+  assert.equal(b.html, '<div class="a">x</div>\n');
+  assert.equal(b.css, '.a{margin:0}\n');
+  assert.equal(b.js, 'console.log(1)\n');
+
+  assert.equal(S.splitCode('.a { color: red; }').css, '.a { color: red; }\n');
+  const r = S.splitCode('```jsx\nimport React from "react";\nexport default function A(){ return <p className="a"/>; }\n```');
+  assert.equal(r.avvisi.length, 1);
+  assert.match(r.js, /React/);
+  assert.deepEqual(S.splitCode(''), { html: '', css: '', js: '', avvisi: [] });
 });

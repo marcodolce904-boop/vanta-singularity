@@ -29,7 +29,7 @@ test('init crea cartelle e contenuti di esempio una volta sola', () => {
   assert.equal(s.list('componenti').length, seed.componenti.length);
   assert.equal(s.getClassi().gruppi.length, seed.classi.gruppi.length);
   assert.equal(s.getRoot().gruppi.length, seed.root.gruppi.length);
-  ['catalogo.json', 'classi/classi.json', 'classi/md-classi.css', 'root/root.json', 'root/root.css'].forEach((f) =>
+  ['catalogo.json', 'classi/classi.json', 'classi/cat-classi.css', 'root/root.json', 'root/root.css'].forEach((f) =>
     assert.ok(fs.existsSync(path.join(dir, f)), f)
   );
   assert.equal(createStore(dir).init().seeded, false);
@@ -89,13 +89,13 @@ test('remove sposta nel cestino e duplicate fa una copia', () => {
 test('saveClassi controlla i nomi e scrive il CSS con una copia .bak', () => {
   const { s, dir } = fresh();
   const dati = s.getClassi();
-  dati.gruppi[0].classi.push({ id: 'zz', nome: 'md-nuova', descrizione: 'x', css: '.md-nuova { color: red; }' });
+  dati.gruppi[0].classi.push({ id: 'zz', nome: 'cat-nuova', descrizione: 'x', css: '.cat-nuova { color: red; }' });
   s.saveClassi(dati);
-  assert.match(read(dir, 'classi', 'md-classi.css'), /\.md-nuova \{ color: red; \}/);
+  assert.match(read(dir, 'classi', 'cat-classi.css'), /\.cat-nuova \{ color: red; \}/);
   assert.ok(fs.existsSync(path.join(dir, 'classi', 'classi.json.bak')));
   assert.throws(() => s.saveClassi({ gruppi: [{ nome: 'g', classi: [{ nome: '', css: '' }] }] }), /non ha il nome/);
   assert.throws(() => s.saveClassi({ gruppi: [{ nome: 'g', classi: [{ nome: '.punto', css: '' }] }] }), /Nome classe non valido/);
-  assert.match(read(dir, 'classi', 'md-classi.css'), /md-nuova/, 'un salvataggio rifiutato non tocca i file');
+  assert.match(read(dir, 'classi', 'cat-classi.css'), /cat-nuova/, 'un salvataggio rifiutato non tocca i file');
 });
 
 test('saveRoot rifiuta valori non validi e duplicati', () => {
@@ -114,7 +114,7 @@ test('saveRoot rifiuta valori non validi e duplicati', () => {
 test('preset: salva, elenca, legge, elimina', () => {
   const { s, dir } = fresh();
   assert.deepEqual(s.listPresets(), []);
-  const r = s.savePreset('Palette autunno', { gruppi: [{ nome: 'Colori', variabili: [{ nome: '--md-color-primary', valore: '#aa5500', tipo: 'colore' }] }] });
+  const r = s.savePreset('Palette autunno', { gruppi: [{ nome: 'Colori', variabili: [{ nome: '--cat-color-primary', valore: '#aa5500', tipo: 'colore' }] }] });
   assert.equal(r.id, 'palette-autunno');
   assert.deepEqual(s.listPresets().map((p) => p.nome), ['Palette autunno']);
   const p = s.getPreset('palette-autunno');
@@ -140,11 +140,11 @@ test('JSON corrotto: si riparte da vuoto e resta una copia', () => {
 
 test('il prefisso cambia il nome del file CSS delle classi', () => {
   const { s, dir } = fresh();
-  assert.equal(s.getSettings().prefisso, 'md');
+  assert.equal(s.getSettings().prefisso, 'cat');
   s.setSettings({ prefisso: 'Zz' });
   assert.equal(s.getSettings().prefisso, 'zz');
   assert.ok(fs.existsSync(path.join(dir, 'classi', 'zz-classi.css')));
-  assert.equal(fs.existsSync(path.join(dir, 'classi', 'md-classi.css')), false);
+  assert.equal(fs.existsSync(path.join(dir, 'classi', 'cat-classi.css')), false);
   assert.ok(fs.readdirSync(path.join(dir, '_cestino')).length >= 1);
   ['', 'a-b', '1a', 'x'.repeat(13), '../a'].forEach((p) => assert.throws(() => s.setSettings({ prefisso: p }), /Prefisso non valido/, p));
   assert.equal(s.getSettings().prefisso, 'zz');
@@ -174,13 +174,13 @@ test('exportAll scrive la struttura completa per VS Code', () => {
   const r = s.exportAll(dest);
   assert.equal(r.strutture, seed.strutture.length);
   assert.equal(r.componenti, seed.componenti.length);
-  ['css/root.css', 'css/md-classi.css', 'tokens/figma-tokens.json'].forEach((f) =>
+  ['css/root.css', 'css/cat-classi.css', 'tokens/figma-tokens.json'].forEach((f) =>
     assert.ok(fs.existsSync(path.join(r.cartella, f)), f)
   );
   const first = s.list('strutture')[0].id;
   const page = read(r.cartella, 'strutture', first, 'index.html');
   assert.match(page, /href="\.\.\/\.\.\/css\/root\.css"/);
-  assert.match(page, /href="\.\.\/\.\.\/css\/md-classi\.css"/);
+  assert.match(page, /href="\.\.\/\.\.\/css\/cat-classi\.css"/);
   assert.ok(fs.existsSync(path.join(r.cartella, 'strutture', first, 'style.css')));
   const tokens = JSON.parse(read(r.cartella, 'tokens', 'figma-tokens.json'));
   assert.ok(tokens.global.color);
@@ -189,13 +189,13 @@ test('exportAll scrive la struttura completa per VS Code', () => {
 
 test('cssText e tokensText usano la bozza se viene passata', () => {
   const { s } = fresh();
-  const bozza = { gruppi: [{ nome: 'g', variabili: [{ nome: '--md-color-x', valore: '#123456', tipo: 'colore' }] }] };
-  assert.match(s.cssText('root', bozza), /--md-color-x: #123456;/);
-  assert.doesNotMatch(s.cssText('root'), /--md-color-x/);
+  const bozza = { gruppi: [{ nome: 'g', variabili: [{ nome: '--cat-color-x', valore: '#123456', tipo: 'colore' }] }] };
+  assert.match(s.cssText('root', bozza), /--cat-color-x: #123456;/);
+  assert.doesNotMatch(s.cssText('root'), /--cat-color-x/);
   assert.match(s.tokensText(bozza), /#123456/);
   assert.throws(() => s.cssText('root', { gruppi: [{ nome: 'g', variabili: [{ nome: 'no', valore: '1' }] }] }), /non valido/);
   assert.throws(() => s.cssText('altro'), /non valido/);
-  assert.match(s.cssText('classi'), /\.md-flex \{/);
+  assert.match(s.cssText('classi'), /\.cat-flex \{/);
 });
 
 test('scrittura atomica: nessun file temporaneo resta nella cartella', () => {
@@ -211,4 +211,24 @@ test('scrittura atomica: nessun file temporaneo resta nella cartella', () => {
     });
   })(dir);
   assert.deepEqual(stray, []);
+});
+
+test('importFolder: legge html, css e js di una cartella qualsiasi', () => {
+  const fs2 = require('node:fs');
+  const os2 = require('node:os');
+  const path2 = require('node:path');
+  const src = fs2.mkdtempSync(path2.join(os2.tmpdir(), 'imp-'));
+  fs2.writeFileSync(path2.join(src, 'index.html'), '<body><h1>T</h1><script>a()</script></body>');
+  fs2.writeFileSync(path2.join(src, 'main.css'), 'h1{margin:0}');
+  fs2.mkdirSync(path2.join(src, 'js'));
+  fs2.writeFileSync(path2.join(src, 'js', 'x.js'), 'b()');
+  const s = createStore(fs2.mkdtempSync(path2.join(os2.tmpdir(), 'cat-')));
+  s.init();
+  const r = s.importFolder(src);
+  assert.equal(r.html, '<h1>T</h1>\n');
+  assert.match(r.css, /h1\{margin:0\}/);
+  assert.match(r.js, /a\(\)[\s\S]*b\(\)/);
+  assert.throws(() => s.importFolder(path2.join(src, 'nope')), /non trovata/);
+  assert.equal(s.list('animazioni').length, 4);
+  assert.equal(s.list('interazioni').length, 5);
 });

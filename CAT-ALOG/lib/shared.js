@@ -130,7 +130,7 @@
 
   function validaVariabile(v) {
     var nome = str(v && v.nome);
-    if (!VAR_NAME_RE.test(nome)) return 'Nome variabile non valido (esempio: --md-color-primary)';
+    if (!VAR_NAME_RE.test(nome)) return 'Nome variabile non valido (esempio: --cat-color-primary)';
     var val = str(v && v.valore);
     if (!val.trim()) return 'Valore vuoto per ' + nome;
     if (v && v.tipo === 'colore' && /^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val.trim())) {
@@ -318,7 +318,73 @@
     return { global: set };
   }
 
+  /* ---------- importa codice incollato ---------- */
+
+  function sniffLang(code) {
+    var t = code.trim();
+    if (/^</.test(t)) return 'html';
+    if (/^(?:@[\w-]+|[.#:\[*]?[\w-][^{;]*)\s*\{[\s\S]*\}\s*$/.test(t) && !/\b(?:function|const|let|var|=>)\b/.test(t)) return 'css';
+    return 'js';
+  }
+
+  /* Divide codice incollato (pagina intera, frammento o blocchi ``` di una chat)
+     in { html, css, js, avvisi }. L'ordine dei blocchi si mantiene. */
+  function splitCode(text) {
+    var out = { html: [], css: [], js: [], avvisi: [] };
+    var src = str(text).replace(/\r\n?/g, '\n');
+    var fence = /```[ \t]*([\w+-]*)[^\n]*\n([\s\S]*?)```/g;
+    var blocks = [];
+    var m;
+    while ((m = fence.exec(src))) blocks.push({ lang: m[1].toLowerCase(), code: m[2] });
+    if (!blocks.length) blocks.push({ lang: '', code: src });
+
+    blocks.forEach(function (b) {
+      if (!b.code.trim()) return;
+      var lang = b.lang;
+      if (lang === 'javascript' || lang === 'mjs' || lang === 'jsx' || lang === 'tsx' || lang === 'ts') lang = 'js';
+      if (lang === 'htm') lang = 'html';
+      if (lang !== 'html' && lang !== 'css' && lang !== 'js') lang = sniffLang(b.code);
+      var code = b.code;
+      if (/\bimport\s+React\b|from\s+['"]react['"]|\bclassName=|export\s+default\s+function/.test(code)) {
+        out.avvisi.push('Sembra codice React (JSX): non lo converto. Lo metto nel campo JS così com\'è.');
+        out.js.push(code.trim());
+        return;
+      }
+      if (lang === 'css') {
+        out.css.push(code.trim());
+      } else if (lang === 'js') {
+        out.js.push(code.trim());
+      } else {
+        var html = code.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, function (_, css) {
+          out.css.push(css.trim());
+          return '';
+        });
+        html = html.replace(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi, function (all, attrs, js) {
+          if (/\bsrc\s*=/i.test(attrs)) {
+            out.avvisi.push('Script esterno lasciato nell\'HTML: ' + all.slice(0, 80));
+            return all;
+          }
+          if (js.trim()) out.js.push(js.trim());
+          return '';
+        });
+        var body = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(html);
+        if (body) html = body[1];
+        else html = html.replace(/<!doctype[^>]*>/i, '').replace(/<\/?(?:html|body)\b[^>]*>/gi, '').replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, '');
+        html = html.replace(/\n{3,}/g, '\n\n').trim();
+        if (html) out.html.push(html);
+      }
+    });
+
+    return {
+      html: out.html.length ? out.html.join('\n\n') + '\n' : '',
+      css: out.css.length ? out.css.join('\n\n') + '\n' : '',
+      js: out.js.length ? out.js.join('\n\n') + '\n' : '',
+      avvisi: out.avvisi
+    };
+  }
+
   return {
+    splitCode: splitCode,
     str: str,
     uid: uid,
     slugify: slugify,
