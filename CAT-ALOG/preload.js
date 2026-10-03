@@ -44,6 +44,7 @@ const NAMES = [
   'saveKit',
   'exportKit',
   'itemStamp',
+  'neutralizeSaved',
   'openInEditor',
   'setEditor',
   'getSeo',

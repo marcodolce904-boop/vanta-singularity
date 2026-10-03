@@ -118,7 +118,7 @@
     if (!sezioni.length) avvisi.push('La pagina non ha ancora sezioni.');
 
     /* Stile di base: usa le variabili del Root se ci sono, altrimenti valori ragionevoli. */
-    var BASE = 'body {\n  margin: 0;\n  background: var(--cat-color-bg, #fff);\n  color: var(--cat-color-text, #1c1c1a);\n  font-family: var(--cat-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);\n  font-size: var(--cat-text-base, 1rem);\n  line-height: var(--cat-line-height, 1.6);\n}\n\nh1, h2, h3, h4 {\n  font-family: var(--cat-font-heading, inherit);\n  line-height: var(--cat-line-height-heading, 1.2);\n}\n\nimg, svg, video {\n  max-width: 100%;\n}';
+    var BASE = 'body {\n  margin: 0;\n  background: var(--cat-color-bg, #fff);\n  color: var(--cat-color-text, #111111);\n  font-family: var(--cat-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);\n  font-size: var(--cat-text-base, 1rem);\n  line-height: var(--cat-line-height, 1.6);\n}\n\nh1, h2, h3, h4 {\n  font-family: var(--cat-font-heading, inherit);\n  line-height: var(--cat-line-height-heading, 1.2);\n}\n\nimg, svg, video {\n  max-width: 100%;\n}';
     var cssList = (o.base === false ? [] : [{ nome: 'Stile di base', css: BASE }]).concat(sezioni.map(function (s) { return { nome: s.nome, css: s.css }; }));
     var merged = dedupeCss(cssList);
     var js = sezioni.map(function (s) { return wrapJs(s.js, s.nome); }).filter(Boolean).join('\n');

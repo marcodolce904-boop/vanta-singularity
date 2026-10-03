@@ -30,7 +30,7 @@ const strutture = [
     descrizione: 'Da tre card per riga a una sola su schermo stretto',
     tag: ['flex', 'card'],
     html: '<div class="cat-cards">\n  <article class="cat-card"><h2>Card uno</h2><p>Testo di esempio.</p></article>\n  <article class="cat-card"><h2>Card due</h2><p>Testo di esempio.</p></article>\n  <article class="cat-card"><h2>Card tre</h2><p>Testo di esempio.</p></article>\n</div>\n',
-    css: '.cat-cards {\n  display: flex;\n  flex-wrap: wrap;\n  gap: var(--cat-gap, 1rem);\n}\n\n.cat-card {\n  flex: 1 1 17rem;\n  padding: var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #d9d9d2);\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-surface, #ffffff);\n}\n'
+    css: '.cat-cards {\n  display: flex;\n  flex-wrap: wrap;\n  gap: var(--cat-gap, 1rem);\n}\n\n.cat-card {\n  flex: 1 1 17rem;\n  padding: var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #8f8f8f);\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-surface, #ffffff);\n}\n'
   },
   {
     nome: 'Sidebar + contenuto',
@@ -61,7 +61,7 @@ const componenti = [
     descrizione: 'Pulsante primario e secondario',
     tag: ['pulsante'],
     html: '<button type="button" class="cat-btn">Primario</button>\n<button type="button" class="cat-btn cat-btn--alt">Secondario</button>\n',
-    css: '.cat-btn {\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem);\n  border: 0;\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-primary, #2f6f4e);\n  color: #ffffff;\n  font: inherit;\n  cursor: pointer;\n  transition: transform var(--cat-duration, 200ms) var(--cat-ease, ease);\n}\n\n.cat-btn--alt {\n  background: var(--cat-color-secondary, #4a5568);\n}\n\n.cat-btn:hover {\n  transform: translateY(-1px);\n}\n\n.cat-btn:focus-visible {\n  outline: 3px solid var(--cat-color-accent, #d97706);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-btn { transition: none; }\n  .cat-btn:hover { transform: none; }\n}\n',
+    css: '.cat-btn {\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem);\n  border: 0;\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-primary, #111111);\n  color: #ffffff;\n  font: inherit;\n  cursor: pointer;\n  transition: transform var(--cat-duration, 200ms) var(--cat-ease, ease);\n}\n\n.cat-btn--alt {\n  background: var(--cat-color-secondary, #404040);\n}\n\n.cat-btn:hover {\n  transform: translateY(-1px);\n}\n\n.cat-btn:focus-visible {\n  outline: 3px solid var(--cat-color-accent, #005fcc);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-btn { transition: none; }\n  .cat-btn:hover { transform: none; }\n}\n',
     js: ''
   },
   {
@@ -69,7 +69,7 @@ const componenti = [
     descrizione: 'Pannelli che si aprono e chiudono, con tastiera e aria',
     tag: ['accordion', 'js'],
     html: '<div class="cat-accordion">\n  <h3><button type="button" class="cat-accordion__trigger" aria-expanded="false" aria-controls="cat-acc-1">Domanda uno</button></h3>\n  <div id="cat-acc-1" class="cat-accordion__panel" hidden><p>Risposta uno.</p></div>\n  <h3><button type="button" class="cat-accordion__trigger" aria-expanded="false" aria-controls="cat-acc-2">Domanda due</button></h3>\n  <div id="cat-acc-2" class="cat-accordion__panel" hidden><p>Risposta due.</p></div>\n</div>\n',
-    css: '.cat-accordion h3 {\n  margin: 0;\n}\n\n.cat-accordion__trigger {\n  width: 100%;\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #d9d9d2);\n  background: var(--cat-color-surface, #ffffff);\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n.cat-accordion__panel {\n  padding: var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #d9d9d2);\n  border-top: 0;\n}\n',
+    css: '.cat-accordion h3 {\n  margin: 0;\n}\n\n.cat-accordion__trigger {\n  width: 100%;\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #8f8f8f);\n  background: var(--cat-color-surface, #ffffff);\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n.cat-accordion__panel {\n  padding: var(--cat-space-3, 1rem);\n  border: 1px solid var(--cat-color-border, #8f8f8f);\n  border-top: 0;\n}\n',
     js: "document.querySelectorAll('.cat-accordion__trigger').forEach(function (btn) {\n  btn.addEventListener('click', function () {\n    var aperto = btn.getAttribute('aria-expanded') === 'true';\n    btn.setAttribute('aria-expanded', String(!aperto));\n    document.getElementById(btn.getAttribute('aria-controls')).hidden = aperto;\n  });\n});\n"
   }
 ];
@@ -117,7 +117,7 @@ const classi = {
         c('cat-text-lg', 'Testo grande', '.cat-text-lg {\n  font-size: var(--cat-text-lg, 1.25rem);\n}'),
         c('cat-text-center', 'Testo centrato', '.cat-text-center {\n  text-align: center;\n}'),
         c('cat-text-bold', 'Testo in grassetto', '.cat-text-bold {\n  font-weight: var(--cat-weight-bold, 700);\n}'),
-        c('cat-text-muted', 'Testo attenuato', '.cat-text-muted {\n  color: var(--cat-color-text-muted, #5c5c57);\n}')
+        c('cat-text-muted', 'Testo attenuato', '.cat-text-muted {\n  color: var(--cat-color-text-muted, #4a4a4a);\n}')
       ]
     },
     {
@@ -149,17 +149,18 @@ const root = {
     {
       nome: 'Colori',
       variabili: [
-        v('--cat-color-primary', '#2f6f4e', 'colore'),
-        v('--cat-color-secondary', '#4a5568', 'colore'),
-        v('--cat-color-accent', '#d97706', 'colore'),
-        v('--cat-color-bg', '#fafaf7', 'colore'),
+        v('--cat-color-primary', '#111111', 'colore'),
+        v('--cat-color-secondary', '#404040', 'colore'),
+        v('--cat-color-accent', '#005fcc', 'colore'),
+        v('--cat-color-bg', '#f5f5f5', 'colore'),
         v('--cat-color-surface', '#ffffff', 'colore'),
-        v('--cat-color-text', '#1c1c1a', 'colore'),
-        v('--cat-color-text-muted', '#5c5c57', 'colore'),
-        v('--cat-color-border', '#d9d9d2', 'colore'),
-        v('--cat-color-success', '#2f7d32', 'colore'),
-        v('--cat-color-warning', '#b26a00', 'colore'),
-        v('--cat-color-error', '#b3261e', 'colore')
+        v('--cat-color-text', '#111111', 'colore'),
+        v('--cat-color-text-muted', '#4a4a4a', 'colore'),
+        v('--cat-color-border', '#8f8f8f', 'colore'),
+        v('--cat-color-placeholder', '#e2e2e2', 'colore'),
+        v('--cat-color-success', '#1e7a34', 'colore'),
+        v('--cat-color-warning', '#8a5a00', 'colore'),
+        v('--cat-color-error', '#b00020', 'colore')
       ]
     },
     {

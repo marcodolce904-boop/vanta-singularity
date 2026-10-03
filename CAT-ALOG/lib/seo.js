@@ -12,7 +12,7 @@
     immagine: '',
     nomeSito: '',
     autore: '',
-    themeColor: '#2f6f4e',
+    themeColor: '#111111',
     tipoOg: 'website',
     twitter: '',
     robots: 'index, follow',

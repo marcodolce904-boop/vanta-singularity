@@ -42,17 +42,17 @@ test('Root: gruppi, variabili, anteprima, CSS e contrasto', async (t) => {
   assert.equal(P.rows().length, totale);
   assert.equal(P.status(), 'Tutto salvato');
 
-  assert.equal(P.text('--cat-color-primary').value, '#2f6f4e');
-  assert.equal(P.picker('--cat-color-primary').value, '#2f6f4e');
+  assert.equal(P.text('--cat-color-primary').value, '#111111');
+  assert.equal(P.picker('--cat-color-primary').value, '#111111');
   assert.equal(P.picker('--cat-space-1'), null, 'solo i colori hanno il selettore');
   assert.match(P.out(), /:root \{/);
-  assert.match(P.out(), /--cat-color-primary: #2f6f4e;/);
+  assert.match(P.out(), /--cat-color-primary: #111111;/);
 
   const doc = P.frame.srcdoc;
   ['var(--cat-color-primary)', 'var(--cat-space-3)', 'var(--cat-shadow-md)', 'var(--cat-radius-lg)', 'font-family:var(--cat-font-heading)', 'font-size:var(--cat-text-xl)'].forEach((frag) => {
     assert.ok(doc.includes(frag), 'nell\'anteprima manca ' + frag);
   });
-  assert.ok(doc.includes('--cat-color-primary: #2f6f4e;'), 'le variabili sono nell\'anteprima');
+  assert.ok(doc.includes('--cat-color-primary: #111111;'), 'le variabili sono nell\'anteprima');
   assert.ok(!doc.includes('var(--cat-weight-bold)'), 'i valori senza una vista non entrano');
 
   const righe = P.contrast();
@@ -110,9 +110,9 @@ test('Root: valori e nomi non validi vengono segnalati e non si salvano', async 
   assert.equal(P.err('--cat-space-1'), '');
 
   // un colore scritto senza il # non è un colore CSS valido
-  H.type(P.text('--cat-color-primary'), '2f6f4e');
+  H.type(P.text('--cat-color-primary'), '111111');
   assert.match(P.err('--cat-color-primary'), /Manca il #/);
-  H.type(P.text('--cat-color-primary'), '#2f6f4e');
+  H.type(P.text('--cat-color-primary'), '#111111');
   assert.equal(P.err('--cat-color-primary'), '');
 
   const nomeInput = P.row('--cat-space-2').querySelector('.var-name');
@@ -206,7 +206,7 @@ test('Root: preset salvati, applicati (uniti alla bozza) ed eliminati', async (t
   H.click(applica());
   await H.waitFor(() => /valori cambiati/.test(H.toast()), 'preset applicato');
   assert.match(H.toast(), /1 valori cambiati, 0 variabili aggiunte/);
-  assert.equal(P.text(nome).value, '#2f6f4e');
+  assert.equal(P.text(nome).value, '#111111');
 
   // un preset con una variabile in più: applicandolo la variabile torna
   H.click(H.button(P.groups()[2], '+ Variabile'));

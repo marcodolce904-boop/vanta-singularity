@@ -49,6 +49,7 @@ const API_NAMES = [
   'saveKit',
   'exportKit',
   'itemStamp',
+  'neutralizeSaved',
   'openInEditor',
   'setEditor',
   'getSeo',
@@ -241,6 +242,8 @@ function createApi(opzioni) {
       if (!dest) return { annullato: true };
       return Object.assign({ annullato: false }, store.exportKit(data, dest));
     },
+
+    neutralizeSaved: async function () { return store.neutralizeSaved(); },
 
     itemStamp: async function (kind, id) { return store.itemStamp(kind, id); },
 

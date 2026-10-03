@@ -780,7 +780,45 @@
     return { data: data, aggiunte: aggiunte, aggiornate: aggiornate };
   }
 
+  /* ---------- palette neutra: dalla vecchia (verde) a quella a contrasto alto ---------- */
+
+  var NEUTRAL_MAP = {
+    '#2f6f4e': '#111111',
+    '#3f9a6e': '#333333',
+    '#4a5568': '#404040',
+    '#d97706': '#005fcc',
+    '#d9d9d2': '#8f8f8f',
+    '#5c5c57': '#4a4a4a',
+    '#1c1c1a': '#111111',
+    '#fafaf7': '#f5f5f5',
+    '#2f7d32': '#1e7a34',
+    '#b26a00': '#8a5a00',
+    '#b3261e': '#b00020',
+    '#e9f2ec': '#ededed',
+    '#8ad1a8': '#e5e5e5',
+    '#f2f2ee': '#f2f2f2'
+  };
+
+  /* Sostituisce i colori della vecchia palette con quelli della nuova, in qualsiasi testo (CSS, HTML, JSON).
+     Tocca solo i colori esattamente uguali a quelli di prima: gli altri restano. */
+  function neutralizeColors(text) {
+    return str(text)
+      /* riempimenti (segnaposto, skeleton, tracce): prima usavano il colore del bordo, ora ne hanno uno più chiaro; gli interruttori no */
+      .replace(/background: var\(--cat-color-border, #d9d9d2\)/g, function (m, offset, whole) {
+        var prev = whole.slice(Math.max(0, offset - 260), offset).split('}').pop();
+        return /switch/.test(prev) ? m : 'background: var(--cat-color-placeholder, #e2e2e2)';
+      })
+      .replace(/#[0-9a-fA-F]{6}\b/g, function (m) {
+        var to = NEUTRAL_MAP[m.toLowerCase()];
+        return to || m;
+      })
+      .replace(/rgb\(\s*47\s+111\s+78\s*\/\s*([0-9.]+)\s*\)/g, 'rgb(17 17 17 / $1)')
+      .replace(/color\(display-p3 0\.15 0\.45 0\.3\)/g, 'color(display-p3 0 0.35 0.8)');
+  }
+
   return {
+    neutralizeColors: neutralizeColors,
+    NEUTRAL_MAP: NEUTRAL_MAP,
     fluidScale: fluidScale,
     typographyVars: typographyVars,
     mergeRootVars: mergeRootVars,

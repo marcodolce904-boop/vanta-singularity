@@ -320,6 +320,27 @@
             h('span', { text: 'Aspetto' }),
             themeSelect
           ]),
+          h('div', { class: 'field' }, [h('span', { text: 'Colori degli esempi' })]),
+          h('p', { class: 'hint', text: 'Porta alla palette neutra (grigi e nero, contrasto alto) gli esempi già salvati che usano ancora i vecchi colori verdi. Cambia solo i colori identici a quelli di prima; la versione precedente resta in «Versioni…».' }),
+          h('div', { class: 'btn-row' }, [
+            small('Aggiorna i colori degli esempi', function () {
+              if (anyDirty()) {
+                say('Prima salva o annulla le modifiche nelle schede.', true);
+                return;
+              }
+              App.askConfirm({
+                title: 'Aggiornare i colori degli esempi?',
+                message: 'Root, classi e tutti gli elementi che usano i vecchi colori passano alla palette neutra.',
+                okLabel: 'Aggiorna'
+              }).then(function (yes) {
+                if (!yes) return;
+                return Promise.resolve(window.api.neutralizeSaved()).then(function (r) {
+                  say('Fatto: ' + r.root + ' variabili del Root, ' + r.classi + ' classi, ' + r.elementi + ' elementi.', false);
+                  return reloadAll();
+                });
+              }).catch(function (e) { say(App.cleanError(e), true); });
+            })
+          ]),
           h('label', { class: 'field' }, [
             h('span', { text: 'Programma per «Apri in VS Code» (comando)' }),
             editorInput

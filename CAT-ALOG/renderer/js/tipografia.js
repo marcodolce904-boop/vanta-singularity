@@ -116,12 +116,12 @@
         if (p.google) head = '<link rel="stylesheet" href="' + esc(p.google) + '">';
         var css =
           ':root{--h:' + st.titoli + ';--b:' + st.testo + '}' +
-          'body{margin:0;padding:24px;font-family:var(--b);font-size:' + (by.base || '1rem') + ';line-height:' + st.opts.lhTesto + ';color:#1c1c1a;background:#fff}' +
+          'body{margin:0;padding:24px;font-family:var(--b);font-size:' + (by.base || '1rem') + ';line-height:' + st.opts.lhTesto + ';color:#111111;background:#fff}' +
           'h1,h2,h3,h4{font-family:var(--h);line-height:' + st.opts.lhTitoli + ';margin:1.2em 0 .4em}' +
           'h1{font-size:' + (by['4xl'] || by['3xl'] || '2.5rem') + '}h2{font-size:' + (by['3xl'] || by['2xl'] || '2rem') + '}' +
           'h3{font-size:' + (by['2xl'] || '1.5rem') + '}h4{font-size:' + (by.xl || '1.25rem') + '}' +
-          'p{max-width:65ch}small{font-size:' + (by.sm || '.875rem') + '}.eyebrow{font-family:var(--b);font-size:' + (by.sm || '.875rem') + ';text-transform:uppercase;letter-spacing:.08em;color:#2f6f4e}' +
-          'blockquote{margin:1em 0;padding-left:1em;border-left:4px solid #2f6f4e;font-family:var(--h);font-size:' + (by.lg || '1.25rem') + '}';
+          'p{max-width:65ch}small{font-size:' + (by.sm || '.875rem') + '}.eyebrow{font-family:var(--b);font-size:' + (by.sm || '.875rem') + ';text-transform:uppercase;letter-spacing:.08em;color:#111111}' +
+          'blockquote{margin:1em 0;padding-left:1em;border-left:4px solid #111111;font-family:var(--h);font-size:' + (by.lg || '1.25rem') + '}';
         return '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' + head +
           '<style>' + css + '</style></head><body>' +
           '<p class="eyebrow">Anteprima · ' + esc(p.nome) + '</p>' +

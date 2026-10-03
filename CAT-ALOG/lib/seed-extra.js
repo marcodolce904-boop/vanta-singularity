@@ -60,7 +60,7 @@ const animazioni = [
     css: j([
       '.cat-lift {',
       '  padding: var(--cat-space-3, 1rem);',
-      '  border: 1px solid var(--cat-color-border, #d9d9d2);',
+      '  border: 1px solid var(--cat-color-border, #8f8f8f);',
       '  border-radius: var(--cat-radius-md, 0.5rem);',
       '  transition: transform 200ms ease, box-shadow 200ms ease;',
       '}',
@@ -172,7 +172,7 @@ const interazioni = [
     ]),
     css: j([
       '.cat-modal {',
-      '  border: 1px solid var(--cat-color-border, #d9d9d2);',
+      '  border: 1px solid var(--cat-color-border, #8f8f8f);',
       '  border-radius: var(--cat-radius-lg, 0.75rem);',
       '  padding: var(--cat-space-4, 1.5rem);',
       '  max-width: min(90vw, 28rem);',
@@ -207,8 +207,8 @@ const interazioni = [
       '</div>'
     ]),
     css: j([
-      '.cat-tabs [role="tab"] { font: inherit; padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem); border: 1px solid var(--cat-color-border, #d9d9d2); background: var(--cat-color-surface, #fff); cursor: pointer; }',
-      '.cat-tabs [role="tab"][aria-selected="true"] { background: var(--cat-color-primary, #2f6f4e); color: #fff; }',
+      '.cat-tabs [role="tab"] { font: inherit; padding: var(--cat-space-2, 0.5rem) var(--cat-space-3, 1rem); border: 1px solid var(--cat-color-border, #8f8f8f); background: var(--cat-color-surface, #fff); cursor: pointer; }',
+      '.cat-tabs [role="tab"][aria-selected="true"] { background: var(--cat-color-primary, #111111); color: #fff; }',
       '.cat-tabs [role="tabpanel"] { padding: var(--cat-space-3, 1rem); }'
     ]),
     js: j([
@@ -245,7 +245,7 @@ const interazioni = [
     ]),
     css: j([
       '.cat-tip { position: relative; display: inline-block; }',
-      '.cat-tip__bubble { position: absolute; left: 0; top: 100%; margin-top: 4px; padding: 4px 8px; border-radius: var(--cat-radius-sm, 0.25rem); background: #1c1c1a; color: #fff; font-size: 0.875rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 150ms ease; }',
+      '.cat-tip__bubble { position: absolute; left: 0; top: 100%; margin-top: 4px; padding: 4px 8px; border-radius: var(--cat-radius-sm, 0.25rem); background: #111111; color: #fff; font-size: 0.875rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 150ms ease; }',
       '.cat-tip:hover .cat-tip__bubble, .cat-tip:focus-within .cat-tip__bubble { opacity: 1; }',
       '@media (prefers-reduced-motion: reduce) { .cat-tip__bubble { transition: none; } }'
     ]),
@@ -259,8 +259,8 @@ const interazioni = [
     css: j([
       ':root[data-theme="dark"] {',
       '  --cat-color-bg: #121211;',
-      '  --cat-color-surface: #1c1c1a;',
-      '  --cat-color-text: #f2f2ee;',
+      '  --cat-color-surface: #111111;',
+      '  --cat-color-text: #f2f2f2;',
       '  --cat-color-border: #3a3a36;',
       '}'
     ]),

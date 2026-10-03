@@ -891,6 +891,41 @@ function createStore(dataDir) {
     return { cartella: dir, pagine: files.length, asset: daCopiare.length, avvisi: avvisi };
   }
 
+  /* ---------- palette neutra: aggiorna i colori degli esempi già salvati ---------- */
+
+  /* Cambia i colori della vecchia palette (esattamente quelli) in root, classi e in tutti gli elementi.
+     Le versioni precedenti restano nella cronologia («Versioni…»). */
+  function neutralizeSaved() {
+    const out = { root: 0, classi: 0, elementi: 0 };
+    const root = getRoot();
+    root.gruppi.forEach(function (g) {
+      g.variabili.forEach(function (v) {
+        const nv = S.neutralizeColors(v.valore);
+        if (nv !== v.valore) { v.valore = nv; out.root += 1; }
+      });
+    });
+    if (out.root) saveRoot(root);
+    const cl = getClassi();
+    cl.gruppi.forEach(function (g) {
+      g.classi.forEach(function (c) {
+        const nc = S.neutralizeColors(c.css);
+        if (nc !== c.css) { c.css = nc; out.classi += 1; }
+      });
+    });
+    if (out.classi) saveClassi(cl);
+    Object.keys(KINDS).forEach(function (kind) {
+      list(kind).forEach(function (it) {
+        const o = get(kind, it.id);
+        const next = { nome: o.nome, descrizione: o.descrizione, tag: o.tag, html: S.neutralizeColors(o.html), css: S.neutralizeColors(o.css), js: S.neutralizeColors(o.js) };
+        if (next.html !== o.html || next.css !== o.css || next.js !== o.js) {
+          save(kind, it.id, next);
+          out.elementi += 1;
+        }
+      });
+    });
+    return out;
+  }
+
   /* ---------- backup e ripristino ---------- */
 
   const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo', 'pagine', 'kit']);
@@ -992,6 +1027,19 @@ function createStore(dataDir) {
       n += 1;
     });
     seen.__pagine = nowP;
+    /* colori di Root: se sono ancora quelli della vecchia palette, passano alla nuova (una volta sola) */
+    if (!seen.__neutro) {
+      seen.__neutro = true;
+      const rootNow = getRoot();
+      let cambiati = 0;
+      rootNow.gruppi.forEach(function (g) {
+        g.variabili.forEach(function (v) {
+          const nv = S.neutralizeColors(v.valore);
+          if (nv !== v.valore) { v.valore = nv; cambiati += 1; }
+        });
+      });
+      if (cambiati) saveRoot(rootNow);
+    }
     seen.__gruppi = nowG;
     writeFile(file, JSON.stringify({ versione: libreria.VERSIONE, installate: seen }, null, 2) + '\n');
     return n;
@@ -1048,6 +1096,7 @@ function createStore(dataDir) {
     exportItem: exportItem,
     exportAll: exportAll,
     importFolder: importFolder,
+    neutralizeSaved: neutralizeSaved,
     listPages: listPages,
     getPage: getPage,
     savePage: savePage,

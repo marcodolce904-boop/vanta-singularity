@@ -112,7 +112,7 @@
       nome: 'Preferenze dell\'utente',
       nota: 'Impostazioni del sistema operativo. Rispettarle è accessibilità, non un extra.',
       voci: [
-        voce('scuro', 'Tema scuro', 'L\'utente ha scelto il tema scuro nel sistema.', '(prefers-color-scheme: dark)', mq('(prefers-color-scheme: dark)', ':root', '--cat-color-bg: #121211;\n  --cat-color-surface: #1c1c1a;\n  --cat-color-text: #f2f2ee;')),
+        voce('scuro', 'Tema scuro', 'L\'utente ha scelto il tema scuro nel sistema.', '(prefers-color-scheme: dark)', mq('(prefers-color-scheme: dark)', ':root', '--cat-color-bg: #121211;\n  --cat-color-surface: #111111;\n  --cat-color-text: #f2f2f2;')),
         voce('chiaro', 'Tema chiaro', 'Tema chiaro (o nessuna preferenza).', '(prefers-color-scheme: light)', mq('(prefers-color-scheme: light)')),
         voce('poco-movimento', 'Meno movimento', 'L\'utente chiede meno animazioni. Da usare quasi sempre.', '(prefers-reduced-motion: reduce)', mq('(prefers-reduced-motion: reduce)', '*,\n  *::before,\n  *::after', 'animation-duration: 0.01ms !important;\n  animation-iteration-count: 1 !important;\n  transition-duration: 0.01ms !important;\n  scroll-behavior: auto !important;')),
         voce('movimento-ok', 'Movimento consentito', 'Nessuna richiesta di ridurre le animazioni: puoi aggiungere animazioni di solo abbellimento.', '(prefers-reduced-motion: no-preference)', mq('(prefers-reduced-motion: no-preference)')),
@@ -131,7 +131,7 @@
         voce('schermo', 'Solo schermo', 'Esclude la stampa.', 'screen', mq('screen')),
         voce('retina', 'Schermo ad alta densità (retina)', 'Due o più pixel per punto: usa immagini a risoluzione doppia.', '(min-resolution: 2dppx)', mq('(min-resolution: 2dppx)', '.selettore', 'background-image: url("immagine@2x.png");\n  background-size: 100px 100px;')),
         voce('pwa', 'App installata (PWA)', 'Il sito gira come app, senza barra del browser.', '(display-mode: standalone)', mq('(display-mode: standalone)', '.cat-install-hint', 'display: none;')),
-        voce('p3', 'Colori ampi (Display P3)', 'Monitor con più colori dello standard sRGB.', '(color-gamut: p3)', mq('(color-gamut: p3)', ':root', '--cat-color-primary: color(display-p3 0.15 0.45 0.3);')),
+        voce('p3', 'Colori ampi (Display P3)', 'Monitor con più colori dello standard sRGB.', '(color-gamut: p3)', mq('(color-gamut: p3)', ':root', '--cat-color-primary: color(display-p3 0 0.35 0.8);')),
         voce('hdr', 'Schermo HDR', 'Luminosità e contrasto elevati.', '(dynamic-range: high)', mq('(dynamic-range: high)')),
         voce('no-js', 'Senza JavaScript', 'Funziona solo se JavaScript è disattivato o bloccato.', '(scripting: none)', mq('(scripting: none)', '.cat-needs-js', 'display: none;'))
       ]

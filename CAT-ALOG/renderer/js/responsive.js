@@ -17,14 +17,14 @@
       return '<li class="bp" data-k="' + s.k + '">' + s.k + (s.min ? ' <small>≥ ' + s.min + ' px</small>' : ' <small>base</small>') + '</li>';
     }).join('');
     var css = R.soglie.filter(function (s) { return s.min; }).map(function (s) {
-      return '@media (min-width:' + s.min + 'px){.bp[data-k="' + s.k + '"]{background:#2f6f4e;color:#fff;border-color:#2f6f4e}}';
+      return '@media (min-width:' + s.min + 'px){.bp[data-k="' + s.k + '"]{background:#111111;color:#fff;border-color:#111111}}';
     }).join('\n');
     return '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>' +
-      'body{margin:0;padding:12px;font:14px system-ui,sans-serif;color:#1c1c1a}' +
+      'body{margin:0;padding:12px;font:14px system-ui,sans-serif;color:#111111}' +
       'h1{margin:0 0 8px;font-size:15px}' +
-      '.bp{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border:1px solid #bbb;border-radius:999px;list-style:none;background:#f2f2ee}' +
-      '.bp[data-k="xs"]{background:#2f6f4e;color:#fff;border-color:#2f6f4e}' +
-      'ul{margin:0;padding:0}.flag{margin:6px 0;color:#5c5c57}.flag b{color:#1c1c1a}' +
+      '.bp{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border:1px solid #bbb;border-radius:999px;list-style:none;background:#f2f2f2}' +
+      '.bp[data-k="xs"]{background:#111111;color:#fff;border-color:#111111}' +
+      'ul{margin:0;padding:0}.flag{margin:6px 0;color:#4a4a4a}.flag b{color:#111111}' +
       css + '</style></head><body>' +
       '<h1>Larghezza: <span id="w">…</span> · <span id="o">…</span></h1><ul>' + rows + '</ul>' +
       '<p class="flag">Puntatore: <b id="p">…</b></p><p class="flag">Tema: <b id="t">…</b></p>' +

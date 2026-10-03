@@ -5,7 +5,7 @@
 const { cssFor } = require('../griglia');
 
 const EXTRA =
-  '\n.cat-demo {\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-1, 0.25rem);\n  border: 1px solid var(--cat-color-border, #d9d9d2);\n  border-radius: var(--cat-radius-sm, 0.25rem);\n  background: var(--cat-color-surface, #fff);\n  text-align: center;\n  overflow-wrap: anywhere;\n}\n\n.cat-mt {\n  margin-top: var(--cat-space-3, 1rem);\n}\n';
+  '\n.cat-demo {\n  padding: var(--cat-space-2, 0.5rem) var(--cat-space-1, 0.25rem);\n  border: 1px solid var(--cat-color-border, #8f8f8f);\n  border-radius: var(--cat-radius-sm, 0.25rem);\n  background: var(--cat-color-surface, #fff);\n  text-align: center;\n  overflow-wrap: anywhere;\n}\n\n.cat-mt {\n  margin-top: var(--cat-space-3, 1rem);\n}\n';
 
 function item(nome, descrizione, tag, html) {
   return { nome: nome, descrizione: descrizione, tag: ['griglia', 'bootstrap'].concat(tag), html: html, css: cssFor(html) + EXTRA, js: '' };

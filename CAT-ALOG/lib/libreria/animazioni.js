@@ -26,7 +26,7 @@ module.exports = [
     descrizione: 'Pulsa in loop per attirare l\'attenzione',
     tag: ['loop', 'attenzione'],
     html: '<button type="button" class="cat-pulse">Nuovo!</button>\n',
-    css: `@keyframes cat-pulse {\n  0%, 100% { transform: scale(1); }\n  50%      { transform: scale(1.06); }\n}\n\n.cat-pulse {\n  padding: 0.6rem 1.2rem;\n  border: 0;\n  border-radius: 999px;\n  background: var(--cat-color-accent, #d97706);\n  color: #fff;\n  font: inherit;\n  animation: cat-pulse 1.6s ease-in-out infinite;\n}\n${RM('.cat-pulse')}`,
+    css: `@keyframes cat-pulse {\n  0%, 100% { transform: scale(1); }\n  50%      { transform: scale(1.06); }\n}\n\n.cat-pulse {\n  padding: 0.6rem 1.2rem;\n  border: 0;\n  border-radius: 999px;\n  background: var(--cat-color-accent, #005fcc);\n  color: #fff;\n  font: inherit;\n  animation: cat-pulse 1.6s ease-in-out infinite;\n}\n${RM('.cat-pulse')}`,
     js: ''
   },
   {
@@ -42,7 +42,7 @@ module.exports = [
     descrizione: 'Il campo trema da sinistra a destra quando c\'è un errore; si riavvia con il pulsante',
     tag: ['errore', 'form'],
     html: '<input class="cat-shake" id="cat-shake-input" type="text" value="Campo con errore" aria-label="Campo di esempio" aria-invalid="true">\n<button type="button" id="cat-shake-btn">Riprova</button>\n',
-    css: `@keyframes cat-shake {\n  0%, 100% { transform: translateX(0); }\n  20%, 60% { transform: translateX(-6px); }\n  40%, 80% { transform: translateX(6px); }\n}\n\n.cat-shake {\n  padding: 0.5rem;\n  border: 2px solid var(--cat-color-error, #b3261e);\n  border-radius: var(--cat-radius-md, 0.5rem);\n}\n\n.cat-shake.is-shaking {\n  animation: cat-shake 400ms ease;\n}\n${RM('.cat-shake.is-shaking')}`,
+    css: `@keyframes cat-shake {\n  0%, 100% { transform: translateX(0); }\n  20%, 60% { transform: translateX(-6px); }\n  40%, 80% { transform: translateX(6px); }\n}\n\n.cat-shake {\n  padding: 0.5rem;\n  border: 2px solid var(--cat-color-error, #b00020);\n  border-radius: var(--cat-radius-md, 0.5rem);\n}\n\n.cat-shake.is-shaking {\n  animation: cat-shake 400ms ease;\n}\n${RM('.cat-shake.is-shaking')}`,
     js: `var input = document.getElementById('cat-shake-input');\ndocument.getElementById('cat-shake-btn').addEventListener('click', function () {\n  input.classList.remove('is-shaking');\n  void input.offsetWidth; // riavvia l'animazione\n  input.classList.add('is-shaking');\n});\n`
   },
   {
@@ -66,7 +66,7 @@ module.exports = [
     descrizione: 'Fronte e retro: la card ruota di 180° al passaggio o al focus',
     tag: ['hover', 'card', '3d'],
     html: '<div class="cat-flip" tabindex="0">\n  <div class="cat-flip__inner">\n    <div class="cat-flip__face">Fronte</div>\n    <div class="cat-flip__face cat-flip__face--back">Retro</div>\n  </div>\n</div>\n',
-    css: `.cat-flip {\n  width: 12rem;\n  height: 8rem;\n  perspective: 800px;\n}\n\n.cat-flip__inner {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  transition: transform 400ms ease;\n  transform-style: preserve-3d;\n}\n\n.cat-flip:hover .cat-flip__inner,\n.cat-flip:focus-visible .cat-flip__inner {\n  transform: rotateY(180deg);\n}\n\n.cat-flip__face {\n  position: absolute;\n  inset: 0;\n  display: grid;\n  place-items: center;\n  border-radius: var(--cat-radius-lg, 0.75rem);\n  background: var(--cat-color-primary, #2f6f4e);\n  color: #fff;\n  backface-visibility: hidden;\n}\n\n.cat-flip__face--back {\n  background: var(--cat-color-secondary, #4a5568);\n  transform: rotateY(180deg);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-flip__inner { transition: none; }\n}\n`,
+    css: `.cat-flip {\n  width: 12rem;\n  height: 8rem;\n  perspective: 800px;\n}\n\n.cat-flip__inner {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  transition: transform 400ms ease;\n  transform-style: preserve-3d;\n}\n\n.cat-flip:hover .cat-flip__inner,\n.cat-flip:focus-visible .cat-flip__inner {\n  transform: rotateY(180deg);\n}\n\n.cat-flip__face {\n  position: absolute;\n  inset: 0;\n  display: grid;\n  place-items: center;\n  border-radius: var(--cat-radius-lg, 0.75rem);\n  background: var(--cat-color-primary, #111111);\n  color: #fff;\n  backface-visibility: hidden;\n}\n\n.cat-flip__face--back {\n  background: var(--cat-color-secondary, #404040);\n  transform: rotateY(180deg);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-flip__inner { transition: none; }\n}\n`,
     js: ''
   },
   {
@@ -74,7 +74,7 @@ module.exports = [
     descrizione: 'La linea cresce da sinistra a destra al passaggio del mouse',
     tag: ['hover', 'link'],
     html: '<a href="#" class="cat-underline">Passa sopra di me</a>\n',
-    css: `.cat-underline {\n  position: relative;\n  color: inherit;\n  text-decoration: none;\n}\n\n.cat-underline::after {\n  content: "";\n  position: absolute;\n  left: 0;\n  bottom: -2px;\n  width: 100%;\n  height: 2px;\n  background: var(--cat-color-primary, #2f6f4e);\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: transform 250ms ease;\n}\n\n.cat-underline:hover::after,\n.cat-underline:focus-visible::after {\n  transform: scaleX(1);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-underline::after { transition: none; }\n}\n`,
+    css: `.cat-underline {\n  position: relative;\n  color: inherit;\n  text-decoration: none;\n}\n\n.cat-underline::after {\n  content: "";\n  position: absolute;\n  left: 0;\n  bottom: -2px;\n  width: 100%;\n  height: 2px;\n  background: var(--cat-color-primary, #111111);\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: transform 250ms ease;\n}\n\n.cat-underline:hover::after,\n.cat-underline:focus-visible::after {\n  transform: scaleX(1);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-underline::after { transition: none; }\n}\n`,
     js: ''
   },
   {
@@ -90,7 +90,7 @@ module.exports = [
     descrizione: 'Onda che parte dal punto del clic (cerchio che si espande e svanisce)',
     tag: ['click', 'pulsante', 'js'],
     html: '<button type="button" class="cat-ripple">Cliccami</button>\n',
-    css: `.cat-ripple {\n  position: relative;\n  overflow: hidden;\n  padding: 0.7rem 1.4rem;\n  border: 0;\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-primary, #2f6f4e);\n  color: #fff;\n  font: inherit;\n  cursor: pointer;\n}\n\n.cat-ripple__wave {\n  position: absolute;\n  width: 20px;\n  height: 20px;\n  margin: -10px 0 0 -10px;\n  border-radius: 50%;\n  background: rgb(255 255 255 / 0.5);\n  pointer-events: none;\n  animation: cat-ripple 400ms ease-out forwards;\n}\n\n@keyframes cat-ripple {\n  from { opacity: 1; transform: scale(1); }\n  to   { opacity: 0; transform: scale(14); }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-ripple__wave { display: none; }\n}\n`,
+    css: `.cat-ripple {\n  position: relative;\n  overflow: hidden;\n  padding: 0.7rem 1.4rem;\n  border: 0;\n  border-radius: var(--cat-radius-md, 0.5rem);\n  background: var(--cat-color-primary, #111111);\n  color: #fff;\n  font: inherit;\n  cursor: pointer;\n}\n\n.cat-ripple__wave {\n  position: absolute;\n  width: 20px;\n  height: 20px;\n  margin: -10px 0 0 -10px;\n  border-radius: 50%;\n  background: rgb(255 255 255 / 0.5);\n  pointer-events: none;\n  animation: cat-ripple 400ms ease-out forwards;\n}\n\n@keyframes cat-ripple {\n  from { opacity: 1; transform: scale(1); }\n  to   { opacity: 0; transform: scale(14); }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-ripple__wave { display: none; }\n}\n`,
     js: `document.querySelectorAll('.cat-ripple').forEach(function (btn) {\n  btn.addEventListener('click', function (e) {\n    var r = btn.getBoundingClientRect();\n    var w = document.createElement('span');\n    w.className = 'cat-ripple__wave';\n    w.style.left = (e.clientX - r.left) + 'px';\n    w.style.top = (e.clientY - r.top) + 'px';\n    btn.appendChild(w);\n    w.addEventListener('animationend', function () { w.remove(); });\n  });\n});\n`
   },
   {
@@ -98,7 +98,7 @@ module.exports = [
     descrizione: 'Una linea SVG che si disegna da sola (stroke-dashoffset)',
     tag: ['svg', 'ingresso'],
     html: '<svg class="cat-draw" viewBox="0 0 120 60" width="240" height="120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">\n  <path d="M5 50 C 25 5, 45 5, 60 30 S 95 55, 115 10" pathLength="1"/>\n</svg>\n',
-    css: `.cat-draw {\n  color: var(--cat-color-primary, #2f6f4e);\n}\n\n.cat-draw path {\n  stroke-dasharray: 1;\n  stroke-dashoffset: 1;\n  animation: cat-draw 1.2s ease forwards;\n}\n\n@keyframes cat-draw {\n  to { stroke-dashoffset: 0; }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-draw path { animation: none; stroke-dashoffset: 0; }\n}\n`,
+    css: `.cat-draw {\n  color: var(--cat-color-primary, #111111);\n}\n\n.cat-draw path {\n  stroke-dasharray: 1;\n  stroke-dashoffset: 1;\n  animation: cat-draw 1.2s ease forwards;\n}\n\n@keyframes cat-draw {\n  to { stroke-dashoffset: 0; }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .cat-draw path { animation: none; stroke-dashoffset: 0; }\n}\n`,
     js: ''
   }
 ];

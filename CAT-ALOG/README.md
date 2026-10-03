@@ -49,6 +49,12 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
 
+## Colori degli esempi: palette neutra
+
+I componenti, le strutture e il Root di partenza usano una palette **neutra a contrasto alto**: nero `#111111` (primario) e grigi per testo, bordi e riempimenti; blu `#005fcc` solo per il focus; verde, ambra e rosso scuri per successo, avviso ed errore. Contrasti: testo su sfondo oltre 17:1, testo attenuato 8:1, bordi 3,3:1 (soglia AA per i campi), testo sui pulsanti oltre 12:1. Un test lo controlla e controlla che nei 170 esempi non sia rimasto il vecchio verde. Per i riempimenti (segnaposto delle immagini, scheletri, tracce) c'è la variabile `--cat-color-placeholder`, più chiara dei bordi.
+
+Se i tuoi dati sono vecchi (verdi): il **Root** passa da solo alla palette nuova alla prima apertura, ma solo per le variabili ancora uguali a quelle di prima. Per **classi ed elementi già salvati** vai in **Impostazioni → Aggiorna i colori degli esempi**: cambia solo i colori identici ai vecchi e la versione di prima resta in «Versioni…». I colori che hai scelto tu non si toccano.
+
 ## Aspetto: tema gatti e logo
 
 - **Impostazioni → Aspetto**: *Classico* (segue il tema chiaro/scuro del sistema), *Gatti* (crema e arancio, angoli più morbidi) e *Gatti scuro* (notte). Si applica subito e viene ricordato. In tutti e tre i temi i colori del testo, dei pulsanti, degli avvisi e del codice hanno almeno contrasto AA (4,5:1): c'è un test che lo controlla.

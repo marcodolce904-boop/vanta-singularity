@@ -63,7 +63,7 @@
         field('autore', 'Autore'),
         h('div', { class: 'num-grid' }, [
           field('lingua', 'Lingua', { placeholder: 'it' }),
-          field('themeColor', 'Colore del tema', { placeholder: '#2f6f4e' }),
+          field('themeColor', 'Colore del tema', { placeholder: '#111111' }),
           select('tipoOg', 'Tipo di pagina', [['website', 'Sito'], ['article', 'Articolo'], ['product', 'Prodotto'], ['profile', 'Profilo']]),
           select('robots', 'Indicizzazione', [['index, follow', 'Sì (index, follow)'], ['noindex, follow', 'No (noindex)'], ['noindex, nofollow', 'No, e non seguire i link']])
         ]),
