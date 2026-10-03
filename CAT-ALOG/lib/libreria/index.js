@@ -7,9 +7,9 @@
  */
 
 module.exports = {
-  VERSIONE: 3,
+  VERSIONE: 4,
   strutture: require('./strutture').concat(require('./strutture2'), require('./griglia')),
-  componenti: require('./componenti').concat(require('./componenti2')),
+  componenti: require('./componenti').concat(require('./componenti2'), require('./componenti3'), require('./componenti4'), require('./componenti5')),
   animazioni: require('./animazioni').concat(require('./animazioni2')),
   classi: require('../griglia').gruppiClassi(),
   interazioni: require('./interazioni').concat(require('./interazioni2'))

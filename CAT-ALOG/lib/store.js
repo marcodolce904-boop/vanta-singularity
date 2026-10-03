@@ -400,6 +400,7 @@ function createStore(dataDir) {
     fs.mkdirSync(base, { recursive: true });
     writeFile(path.join(base, 'css', 'root.css'), cssText('root'));
     writeFile(path.join(base, 'css', prefisso + '-classi.css'), cssText('classi'));
+    writeFile(path.join(base, 'css', 'responsive.css'), require('./responsive').buildCss());
     writeFile(path.join(base, 'tokens', 'figma-tokens.json'), tokensText());
     const links = ['../../css/root.css', '../../css/' + prefisso + '-classi.css'];
     const counts = {};

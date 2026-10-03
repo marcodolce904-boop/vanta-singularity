@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { createStore } = require('./store');
 const S = require('./shared');
+const R = require('./responsive');
 
 const API_NAMES = [
   'getConfig',
@@ -35,6 +36,7 @@ const API_NAMES = [
   'backup',
   'restore',
   'exportPng',
+  'exportResponsive',
   'copy'
 ];
 
@@ -190,6 +192,13 @@ function createApi(opzioni) {
       const file = await ui.chooseOpenFile('Scegli il backup ZIP da ripristinare', [{ name: 'ZIP', extensions: ['zip'] }]);
       if (!file) return { annullato: true };
       return Object.assign({ annullato: false }, store.restoreZip(fs.readFileSync(file)));
+    },
+
+    exportResponsive: async function (gruppiIds) {
+      const file = await ui.chooseSaveFile('responsive.css', [{ name: 'CSS', extensions: ['css'] }]);
+      if (!file) return { annullato: true };
+      fs.writeFileSync(file, R.buildCss(Array.isArray(gruppiIds) ? gruppiIds : undefined), 'utf8');
+      return { annullato: false, percorso: file };
     },
 
     exportPng: async function (kind, data) {

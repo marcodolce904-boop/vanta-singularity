@@ -8,15 +8,15 @@ const { boot } = require('./helpers/boot');
 const seed = require('../lib/seed');
 const lib = require('../lib/libreria');
 
-test('avvio: sei schede, la prima è aperta e mostra il primo elemento', async (t) => {
+test('avvio: sette schede, la prima è aperta e mostra il primo elemento', async (t) => {
   const H = await boot();
   t.after(() => H.close());
   const { d } = H;
 
   const tabs = Array.from(d.querySelectorAll('#tabs [role="tab"]'));
-  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Animazioni', 'Interazioni', 'Classi', 'Root']);
-  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false', 'false', 'false']);
-  assert.deepEqual(tabs.map((b) => b.tabIndex), [0, -1, -1, -1, -1, -1]);
+  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Animazioni', 'Interazioni', 'Classi', 'Responsive', 'Root']);
+  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false', 'false', 'false', 'false']);
+  assert.deepEqual(tabs.map((b) => b.tabIndex), [0, -1, -1, -1, -1, -1, -1]);
   assert.equal(H.tab('strutture').hidden, false);
   assert.equal(H.tab('componenti').hidden, true);
   assert.equal(H.tab('strutture').getAttribute('aria-labelledby'), 'tab-strutture');
@@ -45,7 +45,9 @@ test('le schede si cambiano con clic, frecce e Ctrl+numero', async (t) => {
   assert.equal(H.tab('strutture').hidden, true);
 
   H.key(d.getElementById('tabs'), 'ArrowRight');
-  await H.waitFor(() => selected()[0] === 'tab-root', 'freccia destra');
+  await H.waitFor(() => selected()[0] === 'tab-responsive', 'freccia destra');
+  H.key(d.getElementById('tabs'), 'ArrowRight');
+  await H.waitFor(() => selected()[0] === 'tab-root', 'freccia destra, ancora');
   H.key(d.getElementById('tabs'), 'ArrowRight');
   await H.waitFor(() => selected()[0] === 'tab-strutture', 'giro completo');
   H.key(d.getElementById('tabs'), 'End');
@@ -55,8 +57,8 @@ test('le schede si cambiano con clic, frecce e Ctrl+numero', async (t) => {
 
   H.key(d.body, '2', { ctrlKey: true });
   await H.waitFor(() => selected()[0] === 'tab-componenti', 'Ctrl+2');
-  H.key(d.body, '6', { metaKey: true });
-  await H.waitFor(() => selected()[0] === 'tab-root', 'Cmd+6');
+  H.key(d.body, '7', { metaKey: true });
+  await H.waitFor(() => selected()[0] === 'tab-root', 'Cmd+7');
   H.key(d.body, '9', { ctrlKey: true });
   await H.sleep(50);
   assert.deepEqual(selected(), ['tab-root'], 'un numero senza scheda non fa nulla');

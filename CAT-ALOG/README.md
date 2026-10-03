@@ -10,7 +10,7 @@ App desktop personale (Electron) per tenere in un posto solo le tue **strutture 
 
 Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette dei **contenuti di esempio**. Servono solo a far vedere come funziona: cancellali o modificali quando vuoi (finiscono nel cestino, vedi sotto).
 
-## Le 6 schede
+## Le 7 schede
 
 | Scheda | A cosa serve | Cosa fai |
 |---|---|---|
@@ -18,6 +18,7 @@ Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette de
 | **Componenti** | come Strutture, in più il JavaScript | stesso flusso, con la scheda **JS** |
 | **Animazioni** | `@keyframes` e transizioni pronte (fade, slide, hover, scroll-reveal), solo `transform`/`opacity` e `prefers-reduced-motion` | stesso flusso di Componenti |
 | **Interazioni** | comportamenti in JS vanilla (menu mobile, modale `<dialog>`, tab, tooltip, tema scuro) con attributi `data-cat-*` | stesso flusso di Componenti |
+| **Responsive** | media query già pronti, in una pagina sola | scegli un gruppo, **Copia**; vedi quali valgono adesso; provi le larghezze dei dispositivi |
 | **Classi** | catalogo di sole classi CSS, a gruppi | copi il nome o la regola, **Prova** la classe in un riquadro, aggiungi/modifichi/togli classi e gruppi, **Salva**, **Esporta file CSS** |
 | **Root** | variabili `:root` (colori, font, spaziature, raggi, ombre…) | cambi i valori (selettore colore incluso), **preset** di palette, controllo contrasto AA, **Copia :root**, **Salva root.css**, **Esporta token Figma** |
 
@@ -26,17 +27,28 @@ Regole che valgono ovunque:
 - Le modifiche si salvano **solo** con **Salva** (o Ctrl/Cmd+S). Finché non salvi, in alto a destra vedi «● Modifiche non salvate».
 - Se cambi elemento, scheda o chiudi l'app con modifiche non salvate, l'app chiede: **Salva e continua**, **Scarta**, **Annulla**.
 - **Ripristina** torna all'ultima versione salvata.
-- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…6** cambia scheda · frecce sinistra/destra sulle schede.
+- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…7** cambia scheda · frecce sinistra/destra sulle schede.
 - Nel campo del codice **Tab** inserisce 2 spazi; per uscire dal campo con la tastiera: **Esc**, poi **Tab**.
 - «Usa root e classi» nell'anteprima applica le variabili e le classi **salvate** alla tua struttura.
 
 ## Libreria di esempi
 
-All'apertura l'app installa una **libreria** pronta (circa 110 voci): strutture di pagina con i punti per il logo (hero, header, footer, riga di loghi clienti), componenti (pulsanti, navbar, card, form, tabelle, switch, loader, carosello, icone social…), animazioni e interazioni. Regole:
+All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture di pagina con i punti per il logo (hero, header, footer, riga di loghi clienti), componenti (pulsanti, navbar, card, form, tabelle, switch, loader, carosello, icone social…), animazioni e interazioni. Regole:
 
 - Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
+
+## Pagina Responsive
+
+Scheda **Responsive**: tutti i media query che servono, già scritti e copiabili. Dieci gruppi:
+
+- Punti di rottura mobile-first (sm 576, md 768, lg 992, xl 1200, xxl 1400), solo un intervallo, dal grande al piccolo (max-width).
+- Dispositivi tipici (telefono, tablet verticale/orizzontale, portatile, schermi larghi, pieghevoli), orientamento e forma.
+- Mouse/touch/hover, preferenze dell'utente (tema scuro, meno movimento, contrasto, colori forzati…), schermo/stampa/app installata.
+- Container query e pronti da copiare (meta viewport, tacca dell'iPhone, `100dvh`, testo fluido con `clamp()`, griglia che si adatta da sola, mostra/nascondi per punto di rottura…).
+
+Come si usa: **Copia** sulla singola voce, **Copia il gruppo**, **Copia tutto** oppure **Esporta responsive.css…**. Sulle voci che si possono verificare compare **«vale ora»** quando il media query è vero per la finestra dell'app. A destra provi le larghezze (iPhone SE, iPhone 15, Pixel, iPad, portatile, Full HD…): i riquadri dell'anteprima si accendono con i media query veri. «Esporta tutto» include `css/responsive.css`. Controllato in Chromium: tutte le 74 regole sono CSS valido e le query vengono riconosciute.
 
 ## Griglia container › row › col (stile Bootstrap)
 
@@ -57,6 +69,10 @@ Come si scrive:
 ```
 
 Punti di rottura: `sm` ≥ 576 px, `md` ≥ 768, `lg` ≥ 992, `xl` ≥ 1200 (come Bootstrap). Differenze: prefisso `cat-`; il gutter si cambia con `--cat-gutter` (di partenza 1,5rem) o con `cat-g-0…5`; l'allineamento si chiama `cat-align-items-*`, `cat-align-self-*` e `cat-justify-*` (al posto di `justify-content-*`). Se avevi già una classe `cat-container` nel catalogo, resta la tua e quella a gradini compare solo nelle strutture; le varianti `cat-container-sm…xxl` e `cat-container-fluid` arrivano nel catalogo. Ho controllato il risultato in Chromium a 375, 700, 900 e 1280 px (larghezze delle colonne, impilamento, offset, ordine e numero di card per riga).
+
+## Componenti per telefono e tablet
+
+Nella libreria: barra delle schede in basso, barra in alto con tacca, pulsante flottante con azioni, bottom sheet, menu a tutto schermo, barra di acquisto fissa, impostazioni stile iOS, chat, storie, onboarding, griglia di icone dell'app, cornice di **smartphone** e di **tablet** (mockup in solo CSS), vista divisa elenco/dettaglio, barra laterale stretta (rail) e posta a tre colonne. In più: quattro **off-canvas** (sinistra, destra, alto, basso, con focus intrappolato ed Esc), **tendine** (con tastiera, pulsante diviso, mega menu, select personalizzata, menu contestuale, collapse, popover, tooltip) e otto **navbar** (con ricerca e utente, trasparente che si riempie, scura, a due livelli, laterale comprimibile, con off-canvas su mobile).
 
 ## Dove sono i tuoi file
 

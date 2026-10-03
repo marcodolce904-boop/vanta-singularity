@@ -330,3 +330,15 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.5); }
 .q-errore .q-dot { color: var(--ui-danger-text); }
 .quality.manual label { display: inline-flex; gap: 6px; align-items: center; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- responsive ---------- */
+
+.resp-live { margin: 0 0 8px; padding: 6px 10px; border-radius: var(--ui-radius); background: var(--ui-accent-soft); color: var(--ui-text); font-size: 13px; }
+.resp-note { margin: 0 0 10px; }
+.resp-row { grid-template-columns: minmax(0, 1fr); }
+.resp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.resp-head strong { margin-right: auto; }
+.resp-desc { white-space: normal; overflow: visible; }
+.resp-code { max-height: 220px; }
+.resp-badge { padding: 1px 8px; border-radius: 999px; background: var(--ui-accent); color: var(--ui-accent-fg); font-size: 12px; }
+.responsive .col-editor .preview { flex: none; height: 360px; }

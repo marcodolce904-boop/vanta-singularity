@@ -32,6 +32,7 @@ const NAMES = [
   'backup',
   'restore',
   'exportPng',
+  'exportResponsive',
   'copy'
 ];
 
