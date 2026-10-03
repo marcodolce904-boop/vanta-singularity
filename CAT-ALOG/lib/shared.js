@@ -561,7 +561,147 @@
     return rgbToHex(hslToRgb(hsl[0], hsl[1], 1 - hsl[2]));
   }
 
+  /* ---------- opzioni dell'anteprima (tema scuro, senza animazioni, griglia) ---------- */
+
+  function applyPreviewOptions(doc, o) {
+    var opt = o || {};
+    var out = str(doc);
+    var css = '';
+    if (opt.dark) {
+      out = out.replace('<html ', '<html data-theme="dark" style="color-scheme:dark" ');
+      css += 'html[data-theme="dark"] body{background:#121211;color:#f2f2ee}';
+    }
+    if (opt.still) css += '*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}';
+    if (opt.grid) {
+      css += 'body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2147483647;' +
+        'background-image:repeating-linear-gradient(0deg,rgb(255 0 80/.18) 0 1px,transparent 1px 8px),' +
+        'repeating-linear-gradient(90deg,rgb(255 0 80/.18) 0 1px,transparent 1px 8px)}';
+    }
+    if (!css) return out;
+    var tag = '<style>' + css + '</style>';
+    /* dopo il CSS dell'utente, così vince lui solo dove non c'è !important */
+    return out.indexOf('</head>') !== -1 ? out.replace('</head>', tag + '</head>') : tag + out;
+  }
+
+  /* ---------- controllo qualità ---------- */
+
+  /* parts = { html, css, js }; parse(html) -> Document (nel browser: DOMParser). Ritorna una lista di controlli:
+     { id, stato: 'ok' | 'avviso' | 'errore', titolo, dettaglio } */
+  function qualityCheck(parts, parse) {
+    var html = str(parts && parts.html);
+    var css = str(parts && parts.css);
+    var res = [];
+    function add(id, stato, titolo, dettaglio) {
+      res.push({ id: id, stato: stato, titolo: titolo, dettaglio: dettaglio || '' });
+    }
+    var doc = null;
+    try {
+      doc = parse ? parse(html) : new DOMParser().parseFromString(html, 'text/html');
+    } catch (e) {
+      doc = null;
+    }
+
+    if (doc) {
+      var h1 = doc.querySelectorAll('h1').length;
+      if (h1 > 1) add('h1', 'errore', 'Un solo h1 per pagina', 'Ce ne sono ' + h1 + '.');
+      else add('h1', 'ok', 'Un solo h1 per pagina');
+
+      var imgs = Array.prototype.slice.call(doc.querySelectorAll('img'));
+      var noAlt = imgs.filter(function (i) { return !i.hasAttribute('alt'); });
+      if (noAlt.length) add('alt', 'errore', 'Immagini con alt', noAlt.length + ' immagine/i senza attributo alt (usa alt="" se è decorativa).');
+      else add('alt', 'ok', 'Immagini con alt');
+
+      var nameless = Array.prototype.slice.call(doc.querySelectorAll('button, a[href], [role="button"]')).filter(function (el) {
+        if ((el.textContent || '').trim()) return false;
+        if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title')) return false;
+        var img = el.querySelector('img[alt]:not([alt=""])');
+        var svgTitle = el.querySelector('svg title');
+        return !img && !svgTitle;
+      });
+      if (nameless.length) add('nomi', 'errore', 'Pulsanti e link con nome', nameless.length + ' senza testo né aria-label.');
+      else add('nomi', 'ok', 'Pulsanti e link con nome');
+
+      var fields = Array.prototype.slice.call(doc.querySelectorAll('input, select, textarea')).filter(function (el) {
+        var t = (el.getAttribute('type') || '').toLowerCase();
+        return ['hidden', 'submit', 'button', 'reset', 'image'].indexOf(t) === -1;
+      });
+      var unlabeled = fields.filter(function (el) {
+        if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title')) return false;
+        if (el.closest('label')) return false;
+        var id = el.getAttribute('id');
+        return !(id && doc.querySelector('label[for="' + id.replace(/"/g, '') + '"]'));
+      });
+      if (unlabeled.length) add('label', 'errore', 'Campi con etichetta', unlabeled.length + ' campo/i senza label o aria-label.');
+      else if (fields.length) add('label', 'ok', 'Campi con etichetta');
+
+      var ids = {};
+      var dup = [];
+      Array.prototype.forEach.call(doc.querySelectorAll('[id]'), function (el) {
+        var id = el.getAttribute('id');
+        if (ids[id]) dup.push(id);
+        ids[id] = true;
+      });
+      if (dup.length) add('id', 'errore', 'Id unici', 'Ripetuti: ' + dup.slice(0, 3).join(', '));
+    } else {
+      add('html', 'avviso', 'HTML non analizzabile', 'Non riesco a leggere l\'HTML qui.');
+    }
+
+    /* movimento */
+    var moves = /animation\s*:|animation-name\s*:|transition\s*:|transition-property\s*:/.test(css);
+    var reduced = /prefers-reduced-motion/.test(css);
+    if (moves && !reduced) add('motion', 'avviso', 'Rispetta prefers-reduced-motion', 'Ci sono animazioni o transizioni ma nessuna regola @media (prefers-reduced-motion: reduce).');
+    else if (moves) add('motion', 'ok', 'Rispetta prefers-reduced-motion');
+
+    var heavy = [];
+    var kf = /@keyframes\s+[\w-]+\s*\{([\s\S]*?\})\s*\}/g;
+    var m;
+    while ((m = kf.exec(css))) {
+      var props = {};
+      m[1].replace(/([a-z-]+)\s*:/g, function (_, p) { props[p] = true; return _; });
+      Object.keys(props).forEach(function (p) {
+        if (['transform', 'opacity', 'offset-distance', 'animation-timing-function', 'visibility'].indexOf(p) === -1 && heavy.indexOf(p) === -1) heavy.push(p);
+      });
+    }
+    if (heavy.length) add('props', 'avviso', 'Anima solo transform e opacity', 'Anima anche: ' + heavy.slice(0, 4).join(', ') + ' (può essere meno fluido).');
+    else if (/@keyframes/.test(css)) add('props', 'ok', 'Anima solo transform e opacity');
+
+    var longMs = [];
+    css.replace(/(?:transition|animation)[a-z-]*\s*:[^;{}]*?\b(\d*\.?\d+)(ms|s)\b/g, function (_, n, u) {
+      var ms = parseFloat(n) * (u === 's' ? 1000 : 1);
+      if (ms > 400 && ms <= 2000 && !/infinite/.test(_)) longMs.push(ms);
+      return _;
+    });
+    if (longMs.length) add('durata', 'avviso', 'Transizioni tra 150 e 400 ms', 'Almeno una dura ' + Math.round(Math.max.apply(null, longMs)) + ' ms.');
+
+    /* focus */
+    if (/outline\s*:\s*(none|0)\b/.test(css) && !/:focus-visible|:focus-within/.test(css)) {
+      add('focus', 'errore', 'Focus visibile', 'Togli l\'outline ma non c\'è uno stile :focus-visible alternativo.');
+    } else if (/:focus-visible/.test(css)) {
+      add('focus', 'ok', 'Focus visibile');
+    }
+
+    /* contrasto: solo regole con colore e sfondo scritti come #hex nella stessa regola */
+    var bad = [];
+    var checked = 0;
+    css.replace(/([^{}@]+)\{([^{}]*)\}/g, function (_, sel, body) {
+      var fg = /(?:^|[;\s])color\s*:\s*(#[0-9a-fA-F]{3,6})\b/.exec(body);
+      var bg = /background(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})\b/.exec(body);
+      if (fg && bg && normalizeHex(fg[1]) && normalizeHex(bg[1])) {
+        checked += 1;
+        var r = contrastRatio(normalizeHex(fg[1]), normalizeHex(bg[1]));
+        if (r < 4.5) bad.push(sel.trim().split(',')[0].trim() + ' ' + (Math.round(r * 100) / 100) + ':1');
+      }
+      return _;
+    });
+    if (bad.length) add('contrasto', 'errore', 'Contrasto del testo (AA 4,5:1)', bad.slice(0, 3).join('; '));
+    else if (checked) add('contrasto', 'ok', 'Contrasto del testo (AA 4,5:1)', checked + ' coppia/e controllata/e.');
+
+    return res;
+  }
+
   return {
+    applyPreviewOptions: applyPreviewOptions,
+    qualityCheck: qualityCheck,
     colorScale: colorScale,
     hexToCmyk: hexToCmyk,
     simulateColorBlind: simulateColorBlind,

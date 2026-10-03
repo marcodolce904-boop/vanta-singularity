@@ -132,6 +132,42 @@
       });
     }
 
+    var qualitySummary = h('summary', { text: 'Controllo qualità' });
+    var qualityList = h('ul', { class: 'quality' });
+    var manualList = h('ul', { class: 'quality manual' });
+    [
+      'Provato a 375, 768 e 1280 px',
+      'Si usa solo da tastiera (Tab, Invio, Esc)',
+      'Provato con lo zoom al 200%'
+    ].forEach(function (t) {
+      manualList.appendChild(h('li', null, [h('label', null, [h('input', { type: 'checkbox' }), t])]));
+    });
+    var qualityBox = h('details', { class: 'quality-box' }, [
+      qualitySummary,
+      qualityList,
+      h('p', { class: 'hint', text: 'Da spuntare a mano (non si ricordano tra una sessione e l\'altra):' }),
+      manualList
+    ]);
+
+    function updateQuality() {
+      qualityList.textContent = '';
+      if (!st.draft) return;
+      var res = S.qualityCheck({ html: st.draft.html, css: st.draft.css, js: st.draft.js });
+      var bad = res.filter(function (r) { return r.stato !== 'ok'; });
+      qualitySummary.textContent = 'Controllo qualità · ' + (bad.length ? bad.length + ' da vedere' : 'tutto a posto');
+      qualitySummary.className = bad.some(function (r) { return r.stato === 'errore'; }) ? 'q-ko' : bad.length ? 'q-warn' : 'q-ok';
+      res.forEach(function (r) {
+        qualityList.appendChild(
+          h('li', { class: 'q-' + r.stato }, [
+            h('span', { class: 'q-dot', 'aria-hidden': 'true', text: r.stato === 'ok' ? '●' : r.stato === 'avviso' ? '▲' : '■' }),
+            h('span', { class: 'sr-only', text: r.stato + ': ' }),
+            h('strong', { text: r.titolo }),
+            r.dettaglio ? h('small', { text: ' ' + r.dettaglio }) : null
+          ])
+        );
+      });
+    }
+
     var copyRow = h('div', { class: 'btn-row' }, [copyBtn('Copia HTML', 'html'), copyBtn('Copia CSS', 'css')]);
     if (hasJs) copyRow.appendChild(copyBtn('Copia JS', 'js'));
     copyRow.appendChild(copyBtn('Copia tutto', 'all'));
@@ -149,6 +185,7 @@
         codeTabs,
         code,
         h('p', { class: 'hint', text: 'Tab inserisce 2 spazi. Per uscire dal campo: Esc, poi Tab.' }),
+        qualityBox,
         h('div', { class: 'group-label', text: 'Copia negli appunti' }),
         copyRow,
         h('div', { class: 'group-label', text: 'Altre azioni' }),
@@ -222,6 +259,7 @@
       st.snapshot = JSON.stringify(payload());
       root.classList.remove('no-selection');
       updateStatus();
+      updateQuality();
       renderList();
       refreshSoon.cancel();
       preview.refresh();
@@ -229,6 +267,7 @@
 
     function onEdit(affectsPreview) {
       updateStatus();
+      updateQuality();
       if (affectsPreview) refreshSoon();
     }
 

@@ -41,7 +41,7 @@ module.exports = [
     nome: 'Scossa (errore)',
     descrizione: 'Il campo trema da sinistra a destra quando c\'è un errore; si riavvia con il pulsante',
     tag: ['errore', 'form'],
-    html: '<input class="cat-shake" id="cat-shake-input" type="text" value="Campo con errore" aria-invalid="true">\n<button type="button" id="cat-shake-btn">Riprova</button>\n',
+    html: '<input class="cat-shake" id="cat-shake-input" type="text" value="Campo con errore" aria-label="Campo di esempio" aria-invalid="true">\n<button type="button" id="cat-shake-btn">Riprova</button>\n',
     css: `@keyframes cat-shake {\n  0%, 100% { transform: translateX(0); }\n  20%, 60% { transform: translateX(-6px); }\n  40%, 80% { transform: translateX(6px); }\n}\n\n.cat-shake {\n  padding: 0.5rem;\n  border: 2px solid var(--cat-color-error, #b3261e);\n  border-radius: var(--cat-radius-md, 0.5rem);\n}\n\n.cat-shake.is-shaking {\n  animation: cat-shake 400ms ease;\n}\n${RM('.cat-shake.is-shaking')}`,
     js: `var input = document.getElementById('cat-shake-input');\ndocument.getElementById('cat-shake-btn').addEventListener('click', function () {\n  input.classList.remove('is-shaking');\n  void input.offsetWidth; // riavvia l'animazione\n  input.classList.add('is-shaking');\n});\n`
   },

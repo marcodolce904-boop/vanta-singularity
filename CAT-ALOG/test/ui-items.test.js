@@ -354,3 +354,27 @@ test('Ctrl+K cerca in tutte le schede e apre l\'elemento', async (t) => {
   }, 'elemento selezionato');
   assert.deepEqual(H.state.errors, []);
 });
+
+test('controllo qualità e opzioni di anteprima', async (t) => {
+  const H = await boot();
+  t.after(() => H.close());
+  const P = await open(H, 'strutture', 'Due colonne');
+  const box = P.panel.querySelector('.quality-box summary');
+  assert.match(box.textContent, /Controllo qualità/);
+
+  H.type(P.code, '<h1>a</h1><h1>b</h1><img src="x.png">');
+  assert.match(box.textContent, /da vedere/);
+  assert.match(P.panel.querySelector('.quality').textContent, /Un solo h1/);
+  assert.equal(box.className, 'q-ko');
+
+  H.click(P.btn('Scuro'));
+  await H.waitFor(() => P.frame.srcdoc.includes('data-theme="dark"'), 'anteprima scura');
+  H.click(P.btn('Senza animazioni'));
+  await H.waitFor(() => P.frame.srcdoc.includes('animation:none!important'), 'senza animazioni');
+  H.click(P.btn('Scuro'));
+  await H.waitFor(() => !P.frame.srcdoc.includes('data-theme="dark"'), 'tema chiaro');
+  H.click(P.btn('375 px'));
+  H.click(P.btn('Ruota'));
+  assert.equal(P.frame.style.width, '667px');
+  assert.deepEqual(H.state.errors, []);
+});

@@ -289,3 +289,36 @@ test('strumenti colore: scala, CMYK, daltonismo e versione scura', () => {
   assert.equal(S.darkVariant('#ffffff'), '#000000');
   assert.equal(S.darkVariant('#000000'), '#ffffff');
 });
+
+const { JSDOM } = require('jsdom');
+const parseHtml = (html) => new JSDOM('<!doctype html><body>' + html).window.document;
+const q = (parts) => S.qualityCheck(parts, parseHtml);
+const by = (res, id) => res.find((r) => r.id === id);
+
+test('controllo qualità: errori su HTML e CSS problematici', () => {
+  const bad = q({
+    html: '<h1>a</h1><h1>b</h1><img src="x.png"><button></button><input type="text"><div id="a"></div><div id="a"></div>',
+    css: '.a { color: #777777; background: #888888; outline: none; animation: x 1s; } @keyframes x { from { left: 0; } to { left: 10px; } }'
+  });
+  ['h1', 'alt', 'nomi', 'label', 'id', 'focus', 'contrasto'].forEach((id) => assert.equal(by(bad, id).stato, 'errore', id));
+  assert.equal(by(bad, 'motion').stato, 'avviso');
+  assert.equal(by(bad, 'props').stato, 'avviso');
+});
+
+test('controllo qualità: HTML e CSS a posto', () => {
+  const good = q({
+    html: '<h1>t</h1><img src="x.png" alt=""><button>Ok</button><label>Nome <input type="text"></label><a href="#" aria-label="Home"></a>',
+    css: '.a { color: #000000; background: #ffffff; transition: opacity 200ms; } .a:focus-visible { outline: 3px solid red; } @media (prefers-reduced-motion: reduce) { .a { transition: none; } }'
+  });
+  assert.ok(good.every((r) => r.stato === 'ok'), JSON.stringify(good.filter((r) => r.stato !== 'ok')));
+});
+
+test('opzioni di anteprima: tema scuro, senza animazioni, griglia', () => {
+  const doc = '<!doctype html><html lang="it"><head></head><body>x</body></html>';
+  assert.equal(S.applyPreviewOptions(doc, {}), doc);
+  const d = S.applyPreviewOptions(doc, { dark: true, still: true, grid: true });
+  assert.match(d, /data-theme="dark"/);
+  assert.match(d, /animation:none!important/);
+  assert.match(d, /repeating-linear-gradient/);
+  assert.ok(d.indexOf('<style>') < d.indexOf('</head>'));
+});

@@ -48,7 +48,7 @@ module.exports = [
     descrizione: 'La card segue il mouse con una leggera rotazione in 3D',
     tag: ['hover', '3d', 'js'],
     html: '<div class="cat-tilt" id="cat-tilt"><h3>Muovi il mouse</h3><p>Mi inclino verso di te.</p></div>\n',
-    css: `.cat-tilt { max-width: 18rem; padding: var(--cat-space-4, 1.5rem); border: 1px solid var(--cat-color-border, #d9d9d2); border-radius: var(--cat-radius-lg, 0.75rem); background: var(--cat-color-surface, #fff); box-shadow: var(--cat-shadow-md, 0 4px 12px rgb(0 0 0 / 0.12)); transition: transform 150ms ease-out; will-change: transform; }\n.cat-tilt h3 { margin-top: 0; }\n`,
+    css: `.cat-tilt { max-width: 18rem; padding: var(--cat-space-4, 1.5rem); border: 1px solid var(--cat-color-border, #d9d9d2); border-radius: var(--cat-radius-lg, 0.75rem); background: var(--cat-color-surface, #fff); box-shadow: var(--cat-shadow-md, 0 4px 12px rgb(0 0 0 / 0.12)); transition: transform 150ms ease-out; will-change: transform; }\n.cat-tilt h3 { margin-top: 0; }\n@media (prefers-reduced-motion: reduce) { .cat-tilt { transition: none; } }\n`,
     js: `var card = document.getElementById('cat-tilt');\nif (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {\n  card.addEventListener('mousemove', function (e) {\n    var r = card.getBoundingClientRect();\n    var x = (e.clientX - r.left) / r.width - 0.5;\n    var y = (e.clientY - r.top) / r.height - 0.5;\n    card.style.transform = 'perspective(600px) rotateY(' + (x * 10) + 'deg) rotateX(' + (-y * 10) + 'deg)';\n  });\n  card.addEventListener('mouseleave', function () { card.style.transform = ''; });\n}\n`
   },
   {

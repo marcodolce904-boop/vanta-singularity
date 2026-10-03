@@ -316,3 +316,17 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.5); }
 .sw-cell { display: grid; gap: 2px; justify-items: center; }
 .sw { display: block; width: 44px; height: 32px; border: 1px solid var(--ui-border); border-radius: 6px; }
 .sw-cell small { font-size: 11px; }
+
+.quality-box { margin: 10px 0; padding: 6px 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); }
+.quality-box summary { cursor: pointer; font-weight: 600; }
+.quality-box summary.q-ko { color: var(--ui-danger-text); }
+.quality-box summary.q-ok { color: var(--ui-accent); }
+.quality { margin: 8px 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.quality li { font-size: 13px; }
+.quality small { color: var(--ui-muted); }
+.q-dot { display: inline-block; width: 1.2em; }
+.q-ok .q-dot { color: var(--ui-accent); }
+.q-avviso .q-dot { color: #b26a00; }
+.q-errore .q-dot { color: var(--ui-danger-text); }
+.quality.manual label { display: inline-flex; gap: 6px; align-items: center; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

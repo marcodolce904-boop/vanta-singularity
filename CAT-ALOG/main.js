@@ -30,7 +30,7 @@ function makeUi() {
   };
 }
 
-/* Cartella dei dati predefinita: Documenti/Catalogo MD.
+/* Cartella dei dati predefinita: Documenti/Catalogo MD (nome tenuto uguale a prima, così i tuoi dati restano dove sono).
    Su alcuni Linux «Documenti» coincide con la cartella personale: in quel caso si usa la sottocartella «Documents». */
 function defaultDataDir() {
   const docs = app.getPath('documents');
@@ -45,7 +45,7 @@ function createWindow() {
     height: 860,
     minWidth: 900,
     minHeight: 600,
-    title: 'Catalogo MD',
+    title: 'CAT-ALOG',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

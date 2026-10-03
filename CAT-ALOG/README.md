@@ -50,7 +50,7 @@ Documenti/Catalogo MD/
   _cestino/                   quello che elimini (si recupera a mano)
 ```
 
-Sono file normali: puoi aprirli con VS Code, metterli su Git o in Drive. La cartella si cambia da **Impostazioni**.
+Sono file normali: puoi aprirli con VS Code, metterli su Git o in Drive. La cartella si cambia da **Impostazioni**. La cartella di partenza si chiama ancora `Catalogo MD`, così i dati che hai già non si spostano.
 
 Sicurezza dei dati: elimina = sposta in `_cestino` (mai cancellazione definitiva) · ogni Salva di classi/root lascia una copia `.bak` · un JSON rovinato non blocca l'app e ne resta una copia `.corrotto-<data>` · i file si scrivono in modo atomico (niente file a metà se si spegne il PC).
 
@@ -58,6 +58,11 @@ Sicurezza dei dati: elimina = sposta in `_cestino` (mai cancellazione definitiva
 
 - **Ctrl/Cmd+K** (o il pulsante **Cerca** in alto): cerca in Strutture, Componenti, Animazioni e Interazioni insieme e apre l'elemento.
 - **☆ Preferito** nell'editor (si salva con **Salva**): i preferiti vanno in cima all'elenco, con la stella; la casella **Solo preferiti** filtra l'elenco.
+
+## Controllo qualità e anteprima
+
+- Nell'editor, il riquadro **Controllo qualità** si aggiorna mentre scrivi: ● a posto, ▲ da vedere, ■ errore. Controlla un solo h1, `alt` sulle immagini, nome di pulsanti e link, etichette dei campi, id unici, focus visibile, contrasto AA (solo coppie colore/sfondo scritte come `#rrggbb` nella stessa regola), `prefers-reduced-motion` e animazioni di proprietà diverse da `transform`/`opacity`. Sotto ci sono tre caselle da spuntare a mano (non vengono ricordate).
+- Nella barra dell'anteprima: **Ruota** (667, 1024, 800 px), **Scuro** (imposta `data-theme="dark"`), **Senza animazioni** (le ferma) e **Griglia 8 px**.
 
 ## Strumenti colore
 

@@ -6,7 +6,7 @@
   var h = App.h;
 
   if (!window.api) {
-    document.body.textContent = 'Questa pagina funziona solo dentro l\'app Catalogo MD.';
+    document.body.textContent = 'Questa pagina funziona solo dentro l\'app CAT-ALOG.';
     return;
   }
 
