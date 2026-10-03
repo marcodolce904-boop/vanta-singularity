@@ -38,6 +38,9 @@ const API_NAMES = [
   'restore',
   'exportPng',
   'exportResponsive',
+  'getSeo',
+  'saveSeo',
+  'saveTextFile',
   'listAssets',
   'addAssets',
   'removeAsset',
@@ -197,6 +200,19 @@ function createApi(opzioni) {
       const file = await ui.chooseOpenFile('Scegli il backup ZIP da ripristinare', [{ name: 'ZIP', extensions: ['zip'] }]);
       if (!file) return { annullato: true };
       return Object.assign({ annullato: false }, store.restoreZip(fs.readFileSync(file)));
+    },
+
+    getSeo: async function () { return store.getSeo(); },
+    saveSeo: async function (valori) { return store.saveSeo(valori); },
+
+    /* Salva un testo generato dall'app (sprite SVG, traduzioni…) dove sceglie l'utente. */
+    saveTextFile: async function (nome, testo) {
+      const n = path.basename(S.str(nome)) || 'file.txt';
+      const ext = (/\.([a-z0-9]+)$/i.exec(n) || [])[1] || 'txt';
+      const file = await ui.chooseSaveFile(n, [{ name: ext.toUpperCase(), extensions: [ext] }]);
+      if (!file) return { annullato: true };
+      fs.writeFileSync(file, S.str(testo), 'utf8');
+      return { annullato: false, percorso: file };
     },
 
     listAssets: async function () {

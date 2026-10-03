@@ -10,7 +10,7 @@ App desktop personale (Electron) per tenere in un posto solo le tue **strutture 
 
 Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette dei **contenuti di esempio**. Servono solo a far vedere come funziona: cancellali o modificali quando vuoi (finiscono nel cestino, vedi sotto).
 
-## Le 9 schede
+## Le 12 schede
 
 | Scheda | A cosa serve | Cosa fai |
 |---|---|---|
@@ -21,6 +21,9 @@ Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette de
 | **Responsive** | media query già pronti, in una pagina sola | scegli un gruppo, **Copia**; vedi quali valgono adesso; provi le larghezze dei dispositivi |
 | **Tipografia** | coppie di font e scala dei caratteri fluida | scegli la coppia, regola la scala, **Copia :root** o **Scrivi nel Root** |
 | **Asset** | immagini, SVG, Lottie, video, font, PDF | **+ Aggiungi**, anteprima, peso, avvisi, frammenti pronti da copiare |
+| **Icone** | 77 icone SVG a tratto | cerca, copia SVG / `<symbol>` / `<use>` / maschera CSS / data URI, sprite, **Pulisci SVG…** |
+| **Testi UI** | microcopy in italiano e inglese | copia la lingua, **Salva it.json / en.json** |
+| **Head e SEO** | blocco `<head>` completo | modulo + controlli + anteprima di Google, **Copia il blocco `<head>`** |
 | **Classi** | catalogo di sole classi CSS, a gruppi | copi il nome o la regola, **Prova** la classe in un riquadro, aggiungi/modifichi/togli classi e gruppi, **Salva**, **Esporta file CSS** |
 | **Root** | variabili `:root` (colori, font, spaziature, raggi, ombre…) | cambi i valori (selettore colore incluso), **preset** di palette, controllo contrasto AA, **Copia :root**, **Salva root.css**, **Esporta token Figma** |
 
@@ -29,7 +32,7 @@ Regole che valgono ovunque:
 - Le modifiche si salvano **solo** con **Salva** (o Ctrl/Cmd+S). Finché non salvi, in alto a destra vedi «● Modifiche non salvate».
 - Se cambi elemento, scheda o chiudi l'app con modifiche non salvate, l'app chiede: **Salva e continua**, **Scarta**, **Annulla**.
 - **Ripristina** torna all'ultima versione salvata.
-- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…9** cambia scheda · frecce sinistra/destra sulle schede.
+- Scorciatoie: **Ctrl/Cmd+S** salva · **Ctrl/Cmd+1…9 (le schede dalla decima si aprono con il clic o con le frecce)** cambia scheda · frecce sinistra/destra sulle schede.
 - Nel campo del codice **Tab** inserisce 2 spazi; per uscire dal campo con la tastiera: **Esc**, poi **Tab**.
 - «Usa root e classi» nell'anteprima applica le variabili e le classi **salvate** alla tua struttura.
 
@@ -40,6 +43,18 @@ All'apertura l'app installa una **libreria** pronta (circa 170 voci): strutture 
 - Si installa **una volta per versione**: le voci che modifichi restano tue, quelle che elimini **non tornano**.
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
+
+## Icone
+
+77 icone a tratto su griglia 24×24, disegnate per questo catalogo (navigazione, azioni, persone, contenuti, stato, commercio, tema, e due per il tema gatti: zampa e muso). Seguono il colore del testo (`currentColor`). Per ognuna scegli dimensione e spessore, e copi: SVG pronto (decorativo o con testo alternativo), `<symbol>`, `<use>`, maschera CSS (`mask`, con il colore dato da `background-color`) o data URI. **Sprite**: aggiungi più icone e copi o salvi un unico `sprite.svg`. **Pulisci SVG…** prende un SVG incollato (da Figma, Illustrator, un sito) e toglie script, gestori di eventi, riferimenti esterni e metadati, mette `currentColor` al posto dei colori fissi e aggiunge il `viewBox` se manca. Tutte le icone le ho disegnate e controllate a vista in Chromium.
+
+## Testi UI
+
+152 testi in 14 gruppi (pulsanti, inviti all'azione, accesso, errori nei moduli, errori, conferme, finestre di conferma, stati vuoti, caricamento, navigazione, footer e cookie, newsletter, negozio, etichette per screen reader), ciascuno in italiano e inglese. Clic su una lingua = copiata. **Salva it.json / en.json** crea i file di traduzione di tutti i gruppi con chiavi annidate (`azioni.invia`). Il catalogo non si modifica dall'app (per ora).
+
+## Head e SEO
+
+Compili titolo, descrizione, indirizzo, immagine, nome del sito, lingua, colore del tema, account Twitter/X, indicizzazione e, se vuoi, dati strutturati (organizzazione, sito, attività locale, articolo, prodotto). Ottieni il blocco `<head>` completo (meta di base, canonical, favicon, Open Graph, Twitter, JSON-LD), l'anteprima di come appare su Google e i controlli (lunghezza di titolo e descrizione, https, immagine, lingua). I valori si salvano in `seo/seo.json`. I dati strutturati sono protetti dall'iniezione di `</script>`.
 
 ## Tipografia
 

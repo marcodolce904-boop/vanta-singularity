@@ -7,6 +7,7 @@ const seed = require('./seed');
 const libreria = require('./libreria');
 const zip = require('./zip');
 const assetinfo = require('./assetinfo');
+const Seo = require('./seo');
 
 const KINDS = {
   strutture: { js: false },
@@ -598,9 +599,21 @@ function createStore(dataDir) {
     return describeAsset(base + '.' + ext);
   }
 
+  /* ---------- SEO: valori del modulo, ricordati tra una sessione e l'altra ---------- */
+
+  function getSeo() {
+    return Seo.normalize(readJsonSafe(p('seo', 'seo.json'), null) || {});
+  }
+
+  function saveSeo(values) {
+    const norm = Seo.normalize(values || {});
+    writeFile(p('seo', 'seo.json'), JSON.stringify(norm, null, 2) + '\n');
+    return norm;
+  }
+
   /* ---------- backup e ripristino ---------- */
 
-  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets']);
+  const BACKUP_TOP = Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo']);
   const BACKUP_FILES = ['catalogo.json', 'libreria.json'];
 
   function backupEntries() {
@@ -694,7 +707,7 @@ function createStore(dataDir) {
     fs.mkdirSync(root, { recursive: true });
     const fresh = !fs.existsSync(p('catalogo.json'));
     const added = [];
-    Object.keys(KINDS).concat(['classi', 'root', 'assets']).forEach(function (d) {
+    Object.keys(KINDS).concat(['classi', 'root', 'assets', 'seo']).forEach(function (d) {
       if (!fs.existsSync(p(d))) added.push(d);
       fs.mkdirSync(p(d), { recursive: true });
     });
@@ -739,6 +752,8 @@ function createStore(dataDir) {
     exportItem: exportItem,
     exportAll: exportAll,
     importFolder: importFolder,
+    getSeo: getSeo,
+    saveSeo: saveSeo,
     listAssets: listAssets,
     addAsset: addAsset,
     removeAsset: removeAsset,

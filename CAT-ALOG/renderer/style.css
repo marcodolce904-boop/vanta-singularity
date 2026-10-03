@@ -370,3 +370,29 @@ div.asset-big { height: 140px; }
 .asset-title { margin: 0; overflow-wrap: anywhere; }
 .asset-facts { margin: 4px 0; color: var(--ui-muted); }
 .asset-warnings { margin: 0; padding: 0; list-style: none; color: #8a5200; font-size: 13px; }
+
+/* ---------- icone, testi, seo ---------- */
+
+.icon-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.icon-tile { display: grid; justify-items: center; gap: 4px; width: 100%; padding: 10px 4px 6px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-panel); color: var(--ui-text); font: inherit; cursor: pointer; }
+.icon-tile small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-muted); font-size: 11px; }
+.icon-tile[aria-current="true"] { border-color: var(--ui-accent); box-shadow: 0 0 0 2px var(--ui-accent-soft); }
+.icon-tile.in-sprite { background: var(--ui-accent-soft); }
+.icon-stage { display: grid; place-items: center; min-height: 120px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-panel); }
+.field.inline { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.field.inline input[type="range"] { flex: 1; }
+.testi-rows .testo-row { grid-template-columns: minmax(140px, 220px) 1fr 1fr; align-items: start; }
+.testo-key { display: grid; gap: 2px; }
+.testo-key small { color: var(--ui-muted); }
+.testo-lang { display: grid; gap: 2px; padding: 6px 8px; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-bg); color: var(--ui-text); font: inherit; text-align: left; cursor: pointer; }
+.testo-lang:hover:not(:disabled) { background: var(--ui-accent-soft); }
+.testo-lang b { font-size: 11px; color: var(--ui-muted); }
+.testo-nota { grid-column: 1 / -1; margin: 0; }
+.tips { margin: 0; padding-left: 18px; color: var(--ui-muted); }
+.seo .seo-form { overflow-y: auto; }
+.seo-result { overflow-y: auto; }
+.seo-out { max-height: 420px; }
+.serp { padding: 12px 14px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: #fff; color: #202124; font-family: Arial, sans-serif; }
+.serp-url { font-size: 12px; color: #4d5156; }
+.serp-title { margin: 2px 0; font-size: 18px; color: #1a0dab; }
+.serp-desc { font-size: 13px; line-height: 1.5; color: #4d5156; }
