@@ -573,6 +573,24 @@ function createStore(dataDir) {
       });
       seen[kind] = now;
     });
+    /* gruppi di classi della libreria (griglia): si aggiungono solo i gruppi nuovi, saltando i nomi di classe già presenti */
+    const prevG = Array.isArray(seen.__gruppi) ? seen.__gruppi : [];
+    const nowG = prevG.slice();
+    const catalogo = getClassi();
+    const esistenti = new Set();
+    catalogo.gruppi.forEach(function (g) { g.classi.forEach(function (c) { esistenti.add(c.nome); }); });
+    let nuoviGruppi = 0;
+    (libreria.classi || []).forEach(function (g) {
+      if (nowG.indexOf(g.nome) === -1) nowG.push(g.nome);
+      if (prevG.indexOf(g.nome) !== -1 || catalogo.gruppi.some(function (x) { return x.nome === g.nome; })) return;
+      const classi = g.classi.filter(function (c) { return !esistenti.has(c.nome); });
+      if (!classi.length) return;
+      catalogo.gruppi.push({ nome: g.nome, classi: classi });
+      nuoviGruppi += 1;
+      n += classi.length;
+    });
+    if (nuoviGruppi) saveClassi(catalogo);
+    seen.__gruppi = nowG;
     writeFile(file, JSON.stringify({ versione: libreria.VERSIONE, installate: seen }, null, 2) + '\n');
     return n;
   }

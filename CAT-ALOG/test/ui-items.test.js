@@ -234,7 +234,7 @@ test('ricerca, ripristina e Ctrl+S', async (t) => {
   const search = P.panel.querySelector('input[type="search"]');
   const tutti = P.items().length;
 
-  H.type(search, 'DUE colonne 50');
+  H.type(search, 'DUE colonne che si impilano');
   assert.equal(P.items().length, 1);
   H.type(search, 'zzzz');
   assert.equal(P.items().length, 0);

@@ -38,6 +38,26 @@ All'apertura l'app installa una **libreria** pronta (circa 110 voci): strutture 
 - Il segnaposto del logo è un SVG con scritto LOGO, con il commento su come sostituirlo con `<img src="logo.svg">`.
 - Le nuove voci che aggiungo in futuro arrivano alla prima apertura dopo l'aggiornamento (file `libreria.json` nella tua cartella dei dati).
 
+## Griglia container › row › col (stile Bootstrap)
+
+Sistema a 12 colonne, mobile-first, in flexbox. Si trova in due posti:
+
+- **Classi**: gruppi «Griglia · …» (contenitore, riga e gutter, colonne uguali, colonne per riga, colonne base/sm/md/lg/xl, offset, ordine, allineamento). Sono circa 190 classi, già in ordine giusto nel file `cat-classi.css`.
+- **Strutture**: 8 esempi «Griglia: …» con l'HTML pronto e **solo il CSS che usano** (copiabile da solo, senza il resto del catalogo). Il primo, «come funziona», mostra tutte le combinazioni.
+
+Come si scrive:
+
+```html
+<div class="cat-container">
+  <div class="cat-row cat-g-4">
+    <div class="cat-col-12 cat-col-md-6">Metà da tablet in su</div>
+    <div class="cat-col-12 cat-col-md-6">Metà da tablet in su</div>
+  </div>
+</div>
+```
+
+Punti di rottura: `sm` ≥ 576 px, `md` ≥ 768, `lg` ≥ 992, `xl` ≥ 1200 (come Bootstrap). Differenze: prefisso `cat-`; il gutter si cambia con `--cat-gutter` (di partenza 1,5rem) o con `cat-g-0…5`; l'allineamento si chiama `cat-align-items-*`, `cat-align-self-*` e `cat-justify-*` (al posto di `justify-content-*`). Se avevi già una classe `cat-container` nel catalogo, resta la tua e quella a gradini compare solo nelle strutture; le varianti `cat-container-sm…xxl` e `cat-container-fluid` arrivano nel catalogo. Ho controllato il risultato in Chromium a 375, 700, 900 e 1280 px (larghezze delle colonne, impilamento, offset, ordine e numero di card per riga).
+
 ## Dove sono i tuoi file
 
 ```

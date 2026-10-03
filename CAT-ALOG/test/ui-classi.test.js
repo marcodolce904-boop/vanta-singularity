@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { boot } = require('./helpers/boot');
 const seed = require('../lib/seed');
+const lib = require('../lib/libreria');
 
 const read = (...p) => fs.readFileSync(path.join(...p), 'utf8');
 
@@ -35,7 +36,7 @@ test('Classi: gruppi, righe, copia e prova', async (t) => {
   const P = await open();
   t.after(() => P.H.close());
   const { H } = P;
-  assert.equal(P.groups().length, seed.classi.gruppi.length);
+  assert.equal(P.groups().length, seed.classi.gruppi.length + lib.classi.length);
   assert.equal(P.panel.querySelector('.col-list .list-btn[aria-current="true"]').textContent.startsWith(seed.classi.gruppi[0].nome), true);
   assert.equal(P.title(), seed.classi.gruppi[0].nome);
   assert.equal(P.rows().length, seed.classi.gruppi[0].classi.length);

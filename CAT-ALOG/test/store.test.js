@@ -28,7 +28,7 @@ test('init crea cartelle e contenuti di esempio una volta sola', () => {
   assert.equal(seeded, true);
   assert.equal(s.list('strutture').length, (seed.strutture.length + lib.strutture.length));
   assert.equal(s.list('componenti').length, (seed.componenti.length + lib.componenti.length));
-  assert.equal(s.getClassi().gruppi.length, seed.classi.gruppi.length);
+  assert.equal(s.getClassi().gruppi.length, seed.classi.gruppi.length + lib.classi.length);
   assert.equal(s.getRoot().gruppi.length, seed.root.gruppi.length);
   ['catalogo.json', 'classi/classi.json', 'classi/cat-classi.css', 'root/root.json', 'root/root.css'].forEach((f) =>
     assert.ok(fs.existsSync(path.join(dir, f)), f)
@@ -268,4 +268,33 @@ test('backup e ripristino: ZIP con i dati, i file tornano com\'erano e i vecchi 
   assert.equal(s.list('strutture').length, nStrutture, 'anche la struttura eliminata è tornata');
   assert.ok(fs.readdirSync(path.join(dir, '_cestino')).some((n) => n.startsWith('prima-del-ripristino-componenti')));
   assert.throws(() => s.restoreZip(require('../lib/zip').createZip([{ name: 'altro/x.txt', data: 'x' }])), /non contiene/);
+});
+
+test('griglia: classi e strutture container › row › col', () => {
+  const g = require('../lib/griglia');
+  const rules = g.rules();
+  const names = rules.map((r) => r.cls);
+  assert.equal(new Set(names).size, names.length, 'nomi di classe unici');
+  ['cat-container', 'cat-row', 'cat-col', 'cat-col-auto', 'cat-col-12', 'cat-col-md-6', 'cat-col-xl-1', 'cat-offset-md-3', 'cat-order-first', 'cat-row-cols-sm-2', 'cat-g-3'].forEach((c) => assert.ok(names.includes(c), c));
+  assert.match(rules.find((r) => r.cls === 'cat-col-md-6').css, /@media \(min-width: 768px\)[\s\S]*width: 50%/);
+  assert.match(rules.find((r) => r.cls === 'cat-col-4').css, /width: 33\.333333%/);
+  /* ogni classe del catalogo ha un nome valido */
+  names.forEach((n) => assert.ok(require('../lib/shared').validaClasseNome(n), n));
+  /* il CSS di una struttura contiene solo ciò che usa */
+  const css = g.cssFor('<div class="cat-row"><div class="cat-col-6"></div></div>');
+  assert.match(css, /\.cat-row \{/);
+  assert.match(css, /\.cat-col-6 \{/);
+  assert.doesNotMatch(css, /cat-col-7/);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cat-grid-'));
+  const s = createStore(dir);
+  s.init();
+  const gruppi = s.getClassi().gruppi.map((x) => x.nome);
+  assert.ok(gruppi.includes('Griglia · Colonne md (≥ 768 px)'));
+  const cssTutto = fs.readFileSync(path.join(dir, 'classi', 'cat-classi.css'), 'utf8');
+  assert.ok(cssTutto.indexOf('.cat-row {') < cssTutto.indexOf('.cat-col-md-6 {'), 'la riga viene prima delle colonne');
+  assert.ok(s.list('strutture').some((x) => x.nome.startsWith('Griglia: come funziona')));
+  /* il vecchio cat-container del catalogo non viene duplicato */
+  const conta = s.getClassi().gruppi.reduce((n, x) => n + x.classi.filter((c) => c.nome === 'cat-container').length, 0);
+  assert.equal(conta, 1);
 });
