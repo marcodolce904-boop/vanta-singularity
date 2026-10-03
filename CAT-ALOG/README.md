@@ -14,7 +14,7 @@ Guida completa in **`INSTALLA.md`**. In breve: installa Node.js, poi doppio clic
 
 Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette dei **contenuti di esempio**. Servono solo a far vedere come funziona: cancellali o modificali quando vuoi (finiscono nel cestino, vedi sotto).
 
-## Le 13 schede
+## Le 14 schede
 
 | Scheda | A cosa serve | Cosa fai |
 |---|---|---|
@@ -29,6 +29,7 @@ Alla prima apertura l'app crea la cartella `Documenti/Catalogo MD` e ci mette de
 | **Testi UI** | microcopy in italiano e inglese | copia la lingua, **Salva it.json / en.json** |
 | **Head e SEO** | blocco `<head>` completo | modulo + controlli + anteprima di Google, **Copia il blocco `<head>`** |
 | **Pagine** | assembli una pagina mettendo in fila strutture e componenti | **+ Aggiungi sezione**, riordina con ↑ ↓, anteprima dal vivo, **Esporta cartella**, **Esporta il sito (kit)** |
+| **Griglia CSS** | laboratorio visivo per CSS Grid: cinque layout (Holy grail, Sidebar, Dashboard, Magazine, Hero) con aree colorate | trascini un'area su un'altra per scambiarle, o in una cella vuota per spostarla; l'angolo in basso a destra allarga; frecce = sposta, Maiusc+frecce = allarga; modifichi colonne/righe (`1fr`, `200px`, `minmax()`…) con − e +, gap, `place-items`, «Mostra le tracce»; **Copia** CSS/HTML o **Salva come struttura…** |
 | **Classi** | catalogo di sole classi CSS, a gruppi | copi il nome o la regola, **Prova** la classe in un riquadro, aggiungi/modifichi/togli classi e gruppi, **Salva**, **Esporta file CSS** |
 | **Root** | variabili `:root` (colori, font, spaziature, raggi, ombre…) | cambi i valori (selettore colore incluso), **preset** di palette, controllo contrasto AA, **Copia :root**, **Salva root.css**, **Esporta token Figma** |
 

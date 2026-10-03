@@ -8,15 +8,15 @@ const { boot } = require('./helpers/boot');
 const seed = require('../lib/seed');
 const lib = require('../lib/libreria');
 
-test('avvio: tredici schede, la prima è aperta e mostra il primo elemento', async (t) => {
+test('avvio: quattordici schede, la prima è aperta e mostra il primo elemento', async (t) => {
   const H = await boot();
   t.after(() => H.close());
   const { d } = H;
 
   const tabs = Array.from(d.querySelectorAll('#tabs [role="tab"]'));
-  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Animazioni', 'Interazioni', 'Pagine', 'Classi', 'Responsive', 'Tipografia', 'Asset', 'Icone', 'Testi UI', 'Head e SEO', 'Root']);
-  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true'].concat(Array(12).fill('false')));
-  assert.deepEqual(tabs.map((b) => b.tabIndex), [0].concat(Array(12).fill(-1)));
+  assert.deepEqual(tabs.map((b) => b.textContent), ['Strutture', 'Componenti', 'Animazioni', 'Interazioni', 'Pagine', 'Griglia CSS', 'Classi', 'Responsive', 'Tipografia', 'Asset', 'Icone', 'Testi UI', 'Head e SEO', 'Root']);
+  assert.deepEqual(tabs.map((b) => b.getAttribute('aria-selected')), ['true'].concat(Array(13).fill('false')));
+  assert.deepEqual(tabs.map((b) => b.tabIndex), [0].concat(Array(13).fill(-1)));
   assert.equal(H.tab('strutture').hidden, false);
   assert.equal(H.tab('componenti').hidden, true);
   assert.equal(H.tab('strutture').getAttribute('aria-labelledby'), 'tab-strutture');
@@ -68,10 +68,10 @@ test('le schede si cambiano con clic, frecce e Ctrl+numero', async (t) => {
   H.key(d.body, '2', { ctrlKey: true });
   await H.waitFor(() => selected()[0] === 'tab-componenti', 'Ctrl+2');
   H.key(d.body, '9', { metaKey: true });
-  await H.waitFor(() => selected()[0] === 'tab-asset', 'Cmd+9');
+  await H.waitFor(() => selected()[0] === 'tab-tipografia', 'Cmd+9');
   H.key(d.body, '0', { ctrlKey: true });
   await H.sleep(50);
-  assert.deepEqual(selected(), ['tab-asset'], 'un numero senza scheda non fa nulla');
+  assert.deepEqual(selected(), ['tab-tipografia'], 'un numero senza scheda non fa nulla');
   assert.deepEqual(H.state.errors, []);
 });
 
