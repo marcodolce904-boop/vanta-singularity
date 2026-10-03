@@ -34,7 +34,7 @@ Regole che valgono ovunque:
 
 ```
 Documenti/Catalogo MD/
-  catalogo.json               prefisso (di partenza: md)
+  catalogo.json               prefisso (di partenza: cat)
   strutture/<nome>/           meta.json, markup.html, style.css
   componenti/<nome>/          meta.json, markup.html, style.css, script.js
   classi/                     classi.json, cat-classi.css  (il CSS si rigenera a ogni Salva)
@@ -56,9 +56,9 @@ In Strutture, Componenti, Animazioni e Interazioni c'è il pulsante **Importa…
 ## Esportare
 
 - **Esporta cartella** (in Strutture/Componenti): una cartella con `index.html` (pagina completa), `style.css` ed eventualmente `script.js`, che si apre da sola nel browser.
-- **Esporta tutto** (in alto): una cartella `catalogo-md/` pronta per VS Code:
+- **Esporta tutto** (in alto): una cartella `catalogo-cat/` pronta per VS Code:
   ```
-  catalogo-md/
+  catalogo-cat/
     css/root.css  css/cat-classi.css
     tokens/figma-tokens.json
     strutture/<nome>/index.html, style.css
