@@ -28,7 +28,7 @@ test('avvio: quattordici schede, la prima è aperta e mostra il primo elemento',
   assert.equal(H.tab('strutture').classList.contains('no-selection'), false);
 
   const frame = H.tab('strutture').querySelector('iframe');
-  assert.equal(frame.getAttribute('sandbox'), 'allow-scripts');
+  assert.equal(frame.getAttribute('sandbox'), 'allow-scripts allow-forms allow-modals');
   assert.match(frame.srcdoc, /<!doctype html>/);
   assert.deepEqual(H.state.errors, []);
 });

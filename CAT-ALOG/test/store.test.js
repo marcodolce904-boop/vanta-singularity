@@ -355,3 +355,27 @@ test('pagine: esempi installati, anteprima, esportazione e kit del sito', () => 
   const zipBuf = s.backupZip();
   assert.ok(require('../lib/zip').readZip(zipBuf).some((e) => e.name.startsWith('pagine/')));
 });
+
+test('correzioni della libreria: «Torna su» installato con il vecchio codice viene aggiornato una volta sola', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalogo-fix-'));
+  const st = createStore(dir);
+  st.init();
+  const old = st.get('interazioni', 'torna-su');
+  assert.ok(!/var top =/.test(old.js), 'una cartella nuova ha già il codice giusto');
+  st.save('interazioni', 'torna-su', Object.assign({}, old, { js: old.js.replace(/upBtn/g, 'top').replace('var top ', 'var top ') }));
+  const rec = JSON.parse(fs.readFileSync(path.join(dir, 'libreria.json'), 'utf8'));
+  rec.versione = 5;
+  delete rec.installate.__correzioni;
+  fs.writeFileSync(path.join(dir, 'libreria.json'), JSON.stringify(rec));
+  assert.ok(/var top =/.test(st.get('interazioni', 'torna-su').js));
+  st.init();
+  const fixed = st.get('interazioni', 'torna-su');
+  assert.ok(/var upBtn =/.test(fixed.js) && !/\btop\.(hidden|addEventListener)/.test(fixed.js));
+  /* se l'utente ha già cambiato il codice, non si tocca */
+  st.save('interazioni', 'torna-su', Object.assign({}, fixed, { js: '// mio\n' }));
+  rec.versione = 5;
+  delete rec.installate.__correzioni;
+  fs.writeFileSync(path.join(dir, 'libreria.json'), JSON.stringify(rec));
+  st.init();
+  assert.equal(st.get('interazioni', 'torna-su').js, '// mio\n');
+});

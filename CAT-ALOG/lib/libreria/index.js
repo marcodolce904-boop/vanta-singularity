@@ -7,7 +7,20 @@
  */
 
 module.exports = {
-  VERSIONE: 5,
+  VERSIONE: 6,
+  /* correzioni a voci già installate: id, tipo, nome e funzione che ritorna la voce corretta (o null se non serve).
+     Si applicano una volta sola, e solo se la voce è ancora quella di prima (se l'hai cambiata tu, non si tocca). */
+  correzioni: [
+    {
+      id: 'torna-su-top',
+      kind: 'interazioni',
+      nome: 'Torna su',
+      fix: function (it) {
+        if (!/var top = document\.getElementById/.test(it.js || '')) return null;
+        return Object.assign({}, it, { js: it.js.replace(/var top = /, 'var upBtn = ').replace(/\btop\.(hidden|addEventListener)/g, 'upBtn.$1') });
+      }
+    }
+  ],
   strutture: require('./strutture').concat(require('./strutture2'), require('./griglia')),
   componenti: require('./componenti').concat(require('./componenti2'), require('./componenti3'), require('./componenti4'), require('./componenti5')),
   animazioni: require('./animazioni').concat(require('./animazioni2')),

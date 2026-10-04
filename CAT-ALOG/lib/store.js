@@ -1027,6 +1027,18 @@ function createStore(dataDir) {
       n += 1;
     });
     seen.__pagine = nowP;
+    /* correzioni a voci già installate (una volta sola ciascuna) */
+    const prevC = Array.isArray(seen.__correzioni) ? seen.__correzioni : [];
+    const nowC = prevC.slice();
+    (libreria.correzioni || []).forEach(function (c) {
+      if (nowC.indexOf(c.id) !== -1) return;
+      nowC.push(c.id);
+      const id = S.slugify(c.nome);
+      if (!fs.existsSync(p(c.kind, id))) return;
+      const fixed = c.fix(get(c.kind, id));
+      if (fixed) { save(c.kind, id, fixed); n += 1; }
+    });
+    seen.__correzioni = nowC;
     /* colori di Root: se sono ancora quelli della vecchia palette, passano alla nuova (una volta sola) */
     if (!seen.__neutro) {
       seen.__neutro = true;

@@ -33,7 +33,7 @@ module.exports = [
     tag: ['scroll', 'navigazione'],
     html: `<div style="height:200vh;padding:1rem">Scorri verso il basso: compare il pulsante in basso a destra.</div>\n<button type="button" class="cat-to-top" id="cat-to-top" aria-label="Torna su" hidden>↑</button>\n`,
     css: `.cat-to-top {\n  position: fixed;\n  right: 1.25rem;\n  bottom: 1.25rem;\n  width: 3rem;\n  height: 3rem;\n  border: 0;\n  border-radius: 50%;\n  background: var(--cat-color-primary, #111111);\n  color: #fff;\n  font-size: 1.25rem;\n  cursor: pointer;\n  box-shadow: var(--cat-shadow-md, 0 4px 12px rgb(0 0 0 / 0.12));\n}\n`,
-    js: `var top = document.getElementById('cat-to-top');\nwindow.addEventListener('scroll', function () { top.hidden = window.scrollY < 300; }, { passive: true });\ntop.addEventListener('click', function () {\n  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;\n  window.scrollTo({ top: 0, behavior: calm ? 'auto' : 'smooth' });\n});\n`
+    js: `var upBtn = document.getElementById('cat-to-top');\nwindow.addEventListener('scroll', function () { upBtn.hidden = window.scrollY < 300; }, { passive: true });\nupBtn.addEventListener('click', function () {\n  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;\n  window.scrollTo({ top: 0, behavior: calm ? 'auto' : 'smooth' });\n});\n`
   },
   {
     nome: 'Contatore animato',

@@ -195,7 +195,7 @@
     var parts = [];
     parts.push('<!doctype html><html lang="it"><head><meta charset="utf-8">');
     parts.push('<meta name="viewport" content="width=device-width, initial-scale=1">');
-    parts.push('<style>body{margin:0;padding:1rem;font-family:system-ui,sans-serif}</style>');
+    parts.push('<style>*,*::before,*::after{box-sizing:border-box}body{margin:0;padding:1rem;font-family:system-ui,sans-serif}</style>');
     if (o.rootCss) parts.push('<style>' + escapeStyle(o.rootCss) + '</style>');
     if (o.classiCss) parts.push('<style>' + escapeStyle(o.classiCss) + '</style>');
     if (o.css) parts.push('<style>' + escapeStyle(o.css) + '</style>');
@@ -563,6 +563,38 @@
 
   /* ---------- opzioni dell'anteprima (tema scuro, senza animazioni, griglia) ---------- */
 
+  /* Piccolo script che si aggiunge solo alle anteprime (mai ai file esportati). L'anteprima è un iframe isolato:
+     senza questo, un clic su un link con href="/" o un invio di modulo svuota l'anteprima, e localStorage o gli
+     appunti danno errore. Qui i collegamenti e i moduli non navigano, la memoria è temporanea e la copia ha un ripiego. */
+  var PREVIEW_SHIM = '(function(){' +
+    'function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},' +
+    'setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},' +
+    'key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}' +
+    '["localStorage","sessionStorage"].forEach(function(n){var ok=true;try{window[n].getItem("x")}catch(e){ok=false}' +
+    'if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});' +
+    'function legacyCopy(t){var a=document.createElement("textarea");a.value=t;a.setAttribute("readonly","");' +
+    'a.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(a);a.select();var r=false;' +
+    'try{r=document.execCommand("copy")}catch(e){}a.remove();return r}' +
+    'var cb={writeText:function(t){return new Promise(function(res){var done=false;' +
+    'try{if(navigator.clipboard&&navigator.clipboard.__orig){navigator.clipboard.__orig(t).then(function(){res()},function(){legacyCopy(t);res()});done=true}}catch(e){}' +
+    'if(!done){legacyCopy(t);res()}})},readText:function(){return Promise.resolve("")}};' +
+    'try{var o=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText.bind(navigator.clipboard):null;' +
+    'if(o)cb.__orig=o;Object.defineProperty(navigator,"clipboard",{value:cb,configurable:true})}catch(e){}' +
+    'document.addEventListener("submit",function(e){e.preventDefault()},false);' +
+    'document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");' +
+    'if(!a)return;var h=a.getAttribute("href")||"";if(h==="#"||h===""){e.preventDefault();return}' +
+    'if(h.charAt(0)==="#"){return}if(/^javascript:/i.test(h))return;e.preventDefault()},false);' +
+    '})();';
+
+  function addPreviewShim(doc) {
+    var out = str(doc);
+    /* base about:srcdoc: i collegamenti #sezione restano dentro l'anteprima (senza, aprirebbero la pagina dell'app) */
+    var tag = '<base href="about:srcdoc"><script>' + PREVIEW_SHIM + '</scr' + 'ipt>';
+    var m = /<head[^>]*>/i.exec(out);
+    if (m) return out.slice(0, m.index + m[0].length) + tag + out.slice(m.index + m[0].length);
+    return tag + out;
+  }
+
   function applyPreviewOptions(doc, o) {
     var opt = o || {};
     var out = str(doc);
@@ -849,6 +881,7 @@
     buildClassiCss: buildClassiCss,
     buildRootCss: buildRootCss,
     buildPreviewDoc: buildPreviewDoc,
+    addPreviewShim: addPreviewShim,
     buildFullPage: buildFullPage,
     escapeHtml: escapeHtml,
     toTokens: toTokens

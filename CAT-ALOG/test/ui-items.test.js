@@ -42,6 +42,8 @@ test('modificare HTML e CSS e salvare scrive i file veri', async (t) => {
   H.type(P.code, '<div class="cat-cols-2"><p>NUOVO</p></div>');
   assert.match(P.status(), /Modifiche non salvate/);
   await H.waitFor(() => P.frame.srcdoc.includes('NUOVO'), 'anteprima aggiornata');
+  assert.match(P.frame.srcdoc, /<base href="about:srcdoc">/, 'i link restano dentro l\'anteprima');
+  assert.match(P.frame.getAttribute('sandbox'), /allow-forms/, 'i moduli funzionano nell\'anteprima');
 
   H.click(P.btn('CSS'));
   assert.equal(P.btn('CSS').getAttribute('aria-pressed'), 'true');

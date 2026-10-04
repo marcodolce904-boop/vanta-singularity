@@ -14,7 +14,7 @@
 
   /* opts: { getDoc(): string, title, widths (default true), extra: [elementi da mettere nella barra] } */
   App.makePreview = function (opts) {
-    var frame = h('iframe', { title: opts.title || 'Anteprima', sandbox: 'allow-scripts' });
+    var frame = h('iframe', { title: opts.title || 'Anteprima', sandbox: 'allow-scripts allow-forms allow-modals' });
     var holder = h('div', { class: 'frame-holder' }, frame);
     var bar = h('div', { class: 'preview-bar' });
     var buttons = [];
@@ -77,7 +77,7 @@
     });
 
     function refresh() {
-      frame.srcdoc = App.S.applyPreviewOptions(opts.getDoc(), flags);
+      frame.srcdoc = App.S.applyPreviewOptions(App.S.addPreviewShim(opts.getDoc()), flags);
     }
 
     setWidth(0);

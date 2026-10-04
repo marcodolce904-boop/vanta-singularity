@@ -227,3 +227,7 @@ In Strutture, Componenti, Animazioni e Interazioni c'è il pulsante **Importa…
 - Flexbox: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout · https://www.w3schools.com/css/css3_flexbox.asp
 - Variabili CSS (`:root`): https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties · https://www.w3schools.com/css/css3_variables.asp
 - `clamp()` per testi fluidi: https://developer.mozilla.org/en-US/docs/Web/CSS/clamp
+
+## Anteprime: cosa succede quando clicchi
+
+L'anteprima è una pagina isolata. Per far funzionare i componenti come sul sito vero: i link `#sezione` scorrono dentro l'anteprima, gli altri link e l'invio dei moduli non cambiano pagina (così l'anteprima non si svuota), `localStorage` e «copia negli appunti» hanno un ripiego, `alert` e `confirm` funzionano. Questo script vale **solo per l'anteprima**: nei file esportati non c'è.

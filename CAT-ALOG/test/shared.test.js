@@ -356,3 +356,11 @@ test('tipografia: scala fluida, variabili e unione nel Root', () => {
   assert.equal(again.aggiunte, 0);
   assert.equal(again.aggiornate, 0);
 });
+
+test('addPreviewShim: base, script all\'inizio e nessun effetto su buildPreviewDoc', () => {
+  const doc = S.addPreviewShim(S.buildPreviewDoc({ html: '<a href="/">x</a>', js: 'var a = 1;' }));
+  assert.ok(doc.indexOf('<base href="about:srcdoc">') < doc.indexOf('var a = 1;'));
+  assert.ok(doc.indexOf('localStorage') !== -1 && doc.indexOf('localStorage') < doc.indexOf('var a = 1;'));
+  assert.equal(S.buildPreviewDoc({ html: 'a', js: 'b' }).includes('about:srcdoc'), false, 'i file esportati non lo contengono');
+  assert.ok(S.addPreviewShim('<p>solo html</p>').startsWith('<base'));
+});
