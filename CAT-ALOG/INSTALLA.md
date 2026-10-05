@@ -73,3 +73,11 @@ Non ho mai potuto eseguire questo passo in questo ambiente: la prima volta può 
 ## Disinstallare
 
 Cancella la cartella `CAT-ALOG`. I tuoi dati restano in `Documenti\Catalogo MD` finché non li cancelli tu.
+
+## Aggiornamenti automatici
+
+1. Installa **una volta** l'ultimo `CAT-ALOG-Setup-….exe` da https://github.com/marcodolce904-boop/vanta-singularity/releases/latest (Windows può mostrare «PC protetto»: **Ulteriori informazioni → Esegui comunque**, perché l'installer non è firmato).
+2. Da lì in poi, ogni modifica che faccio e salvo su GitHub crea da sola una nuova versione (ci vogliono circa 5–10 minuti: nella scheda **Actions** del repository vedi «CAT-ALOG - installer e aggiornamenti»).
+3. L'app installata controlla le novità all'avvio e ogni 4 ore, scarica da sola e ti chiede **Riavvia e aggiorna** o **Più tardi** (con «Più tardi» si installa alla chiusura).
+4. I tuoi dati (cartella `Documenti\Catalogo MD`) non vengono toccati. Le voci nuove della libreria arrivano da sole all'avvio dopo l'aggiornamento.
+5. Se un aggiornamento non arriva: apri Releases e controlla che l'ultima versione sia presente; se l'esecuzione in Actions è rossa, mandami il messaggio d'errore.

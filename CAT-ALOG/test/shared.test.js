@@ -364,3 +364,8 @@ test('addPreviewShim: base, script all\'inizio e nessun effetto su buildPreviewD
   assert.equal(S.buildPreviewDoc({ html: 'a', js: 'b' }).includes('about:srcdoc'), false, 'i file esportati non lo contengono');
   assert.ok(S.addPreviewShim('<p>solo html</p>').startsWith('<base'));
 });
+
+test('aggiornamenti: non partono fuori dall\'app installata', () => {
+  const { setupUpdates } = require('../lib/updates');
+  assert.equal(setupUpdates({ app: { isPackaged: false }, dialog: {}, getWindow: () => null }), null);
+});

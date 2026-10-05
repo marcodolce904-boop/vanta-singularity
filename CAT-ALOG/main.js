@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const { setupUpdates } = require('./lib/updates');
 const { createApi, API_NAMES } = require('./lib/api');
 
 let win = null;
@@ -172,6 +173,7 @@ if (!app.requestSingleInstanceLock()) {
     });
 
     createWindow();
+    setupUpdates({ app, dialog, getWindow: function () { return win; } });
 
     app.on('activate', function () {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

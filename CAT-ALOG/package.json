@@ -9,9 +9,10 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test",
-    "dist": "npx --yes electron-builder",
+    "dist": "electron-builder",
     "smoke": "xvfb-run -a -s \"-screen 0 1440x900x24\" node scripts/smoke-electron.js",
-    "dist:win": "npx --yes electron-builder --win"
+    "dist:win": "electron-builder --win",
+    "release": "electron-builder --win --publish always"
   },
   "build": {
     "appId": "com.catalog.catalog",
@@ -25,7 +26,15 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "CAT-ALOG-Setup-${version}.${ext}"
     },
     "mac": {
       "target": "dmg"
@@ -35,14 +44,32 @@
     },
     "directories": {
       "buildResources": "build"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "marcodolce904-boop",
+        "repo": "vanta-singularity",
+        "releaseType": "release"
+      }
+    ],
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     }
   },
   "devDependencies": {
     "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
     "jsdom": "^30.1.1"
   },
   "engines": {
     "node": ">=20"
   },
-  "author": "CAT-ALOG"
+  "author": "CAT-ALOG",
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
 }
