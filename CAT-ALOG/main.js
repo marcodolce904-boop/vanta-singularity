@@ -1,6 +1,7 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, session } = require('electron');
+const { pathToFileURL } = require('url');
 const path = require('path');
 const { spawn } = require('child_process');
 const { setupUpdates } = require('./lib/updates');
@@ -127,6 +128,10 @@ function createWindow() {
     return { action: 'deny' };
   });
 
+  win.webContents.on('will-attach-webview', function (event) {
+    event.preventDefault();
+  });
+
   win.webContents.on('will-navigate', function (event) {
     event.preventDefault();
   });
@@ -167,7 +172,14 @@ if (!app.requestSingleInstanceLock()) {
       ui: makeUi()
     });
 
+    /* nessun permesso (fotocamera, posizione, notifiche…) a nessuna pagina */
+    session.defaultSession.setPermissionRequestHandler(function (wc, permission, callback) { callback(false); });
+    session.defaultSession.setPermissionCheckHandler(function () { return false; });
+
     ipcMain.handle('api', async function (event, name, args) {
+      /* solo la schermata dell'app può chiamare le funzioni, non le anteprime né altre pagine */
+      const url = event.senderFrame ? event.senderFrame.url : '';
+      if (url !== pathToFileURL(path.join(__dirname, 'renderer', 'index.html')).href) throw new Error('Chiamata non permessa');
       if (API_NAMES.indexOf(name) === -1) throw new Error('Funzione non permessa: ' + name);
       return api[name].apply(null, Array.isArray(args) ? args : []);
     });

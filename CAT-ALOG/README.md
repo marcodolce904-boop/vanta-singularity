@@ -231,3 +231,12 @@ In Strutture, Componenti, Animazioni e Interazioni c'è il pulsante **Importa…
 ## Anteprime: cosa succede quando clicchi
 
 L'anteprima è una pagina isolata. Per far funzionare i componenti come sul sito vero: i link `#sezione` scorrono dentro l'anteprima, gli altri link e l'invio dei moduli non cambiano pagina (così l'anteprima non si svuota), `localStorage` e «copia negli appunti» hanno un ripiego, `alert` e `confirm` funzionano. Questo script vale **solo per l'anteprima**: nei file esportati non c'è.
+
+## Sicurezza (controllo del 2026-10-05)
+
+- **Finestra**: `contextIsolation` e `sandbox` attivi, niente `nodeIntegration`; navigazioni e finestre extra bloccate; nessun permesso (fotocamera, posizione…) a nessuna pagina; le funzioni dell'app rispondono solo alla schermata dell'app, non alle anteprime.
+- **Anteprime**: iframe isolato (senza accesso all'app né ai tuoi file).
+- **File**: nomi e percorsi validati (nessuna uscita dalla cartella dei dati), scritture atomiche, ripristino ZIP con controllo dei percorsi e limiti di dimensione contro le «bombe» ZIP.
+- **Dipendenze**: `npm audit` senza vulnerabilità.
+- **Aggiornamenti**: scaricati da GitHub Releases con controllo dell'impronta (sha512). L'installer **non è firmato**: chi controlla l'account GitHub controlla gli aggiornamenti, quindi **attiva la verifica in due passaggi** su GitHub.
+- **Limite noto**: la finestra principale non ha una Content-Security-Policy, perché le anteprime (che eseguono il JavaScript dei componenti) ne erediterebbero le regole e smetterebbero di funzionare.

@@ -38,3 +38,18 @@ test('zip: rifiuta percorsi pericolosi e file rovinati', () => {
   z[40] ^= 0xff;
   assert.throws(() => readZip(z));
 });
+
+test('zip: una «bomba» (dimensione dichiarata troppo grande o decompressione oltre il dichiarato) viene rifiutata', () => {
+  const zlib = require('zlib');
+  const Z = require('../lib/zip');
+  const buf = Z.createZip([{ name: 'a.txt', data: Buffer.alloc(1000, 97) }]);
+  /* dichiara 1 byte ma il contenuto compresso ne produce 1000 */
+  const fake = Buffer.from(buf);
+  const cd = fake.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
+  fake.writeUInt32LE(1, cd + 24);
+  assert.throws(() => Z.readZip(fake));
+  const big = Buffer.from(buf);
+  big.writeUInt32LE(0x7fffffff, cd + 24);
+  assert.throws(() => Z.readZip(big), /troppo grande/);
+  assert.equal(Z.readZip(buf)[0].data.length, 1000);
+});

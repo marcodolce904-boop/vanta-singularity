@@ -81,6 +81,10 @@ function createZip(entries) {
   return Buffer.concat(locals.concat([central, end]));
 }
 
+const MAX_FILES = 20000;
+const MAX_FILE_BYTES = 200 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 1024 * 1024 * 1024;
+
 function safeName(name) {
   const n = name.replace(/\\/g, '/');
   if (!n || n.startsWith('/') || /^[a-zA-Z]:/.test(n) || n.indexOf('\0') !== -1) return null;
@@ -98,8 +102,10 @@ function readZip(buf) {
   }
   if (eocd < 0) throw new Error('File ZIP non valido');
   const count = buf.readUInt16LE(eocd + 10);
+  if (count > MAX_FILES) throw new Error('ZIP con troppi file');
   let p = buf.readUInt32LE(eocd + 16);
   const out = [];
+  let totale = 0;
   for (let i = 0; i < count; i++) {
     if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error('File ZIP rovinato');
     const method = buf.readUInt16LE(p + 10);
@@ -117,10 +123,13 @@ function readZip(buf) {
     if (!name) throw new Error('Percorso non permesso nello ZIP: ' + rawName);
     if (buf.readUInt32LE(lho) !== 0x04034b50) throw new Error('File ZIP rovinato');
     const start = lho + 30 + buf.readUInt16LE(lho + 26) + buf.readUInt16LE(lho + 28);
+    /* protezione dalle «bombe» ZIP: dimensione dichiarata limitata e decompressione che non può superarla */
+    totale += usize;
+    if (usize > MAX_FILE_BYTES || totale > MAX_TOTAL_BYTES) throw new Error('ZIP troppo grande');
     const body = buf.slice(start, start + csize);
     let data;
     if (method === 0) data = body;
-    else if (method === 8) data = zlib.inflateRawSync(body);
+    else if (method === 8) data = zlib.inflateRawSync(body, { maxOutputLength: Math.max(usize, 1) });
     else throw new Error('Compressione ZIP non supportata');
     if (data.length !== usize || crc32(data) !== crc) throw new Error('File ZIP rovinato: ' + name);
     out.push({ name: name, data: data });
