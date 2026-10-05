@@ -74,10 +74,13 @@ Non ho mai potuto eseguire questo passo in questo ambiente: la prima volta può 
 
 Cancella la cartella `CAT-ALOG`. I tuoi dati restano in `Documenti\Catalogo MD` finché non li cancelli tu.
 
-## Aggiornamenti automatici
+## Aggiornare l'app (tutto in locale)
 
-1. Installa **una volta** l'ultimo `CAT-ALOG-Setup-….exe` da https://github.com/marcodolce904-boop/vanta-singularity/releases/latest (Windows può mostrare «PC protetto»: **Ulteriori informazioni → Esegui comunque**, perché l'installer non è firmato).
-2. Da lì in poi, ogni modifica che faccio e salvo su GitHub crea da sola una nuova versione (ci vogliono circa 5–10 minuti: nella scheda **Actions** del repository vedi «CAT-ALOG - installer e aggiornamenti»).
-3. L'app installata controlla le novità all'avvio e ogni 4 ore, scarica da sola e ti chiede **Riavvia e aggiorna** o **Più tardi** (con «Più tardi» si installa alla chiusura).
-4. I tuoi dati (cartella `Documenti\Catalogo MD`) non vengono toccati. Le voci nuove della libreria arrivano da sole all'avvio dopo l'aggiornamento.
-5. Se un aggiornamento non arriva: apri Releases e controlla che l'ultima versione sia presente; se l'esecuzione in Actions è rossa, mandami il messaggio d'errore.
+L'app non si collega a internet per aggiornarsi. Il codice nuovo arriva sul tuo PC con Git, quando lo decidi tu.
+
+1. Una sola volta: installa **Git** (https://git-scm.com) e **Node.js** (https://nodejs.org), poi scarica il progetto con `git clone` dentro una cartella tua.
+2. Per aggiornare: doppio clic su **`AGGIORNA.bat`**. Scarica le novità, aggiorna i componenti se serve e avvia l'app.
+3. Per l'uso di tutti i giorni: **`AVVIA.bat`** (non aggiorna, apre e basta).
+4. Per avere un'app con icona e installer sul tuo PC: apri un terminale nella cartella e scrivi `npm run dist:win`. L'installer `CAT-ALOG-Setup-….exe` esce nella cartella `dist`. Va rifatto a ogni aggiornamento.
+5. I tuoi dati (`Documenti\Catalogo MD`) non vengono toccati. Le voci nuove della libreria arrivano da sole all'avvio.
+6. Il repository GitHub serve solo a far arrivare il codice al tuo PC: può essere **privato** (nelle impostazioni del repository: Change visibility). Se `git pull` chiede l'accesso, accedi con il tuo account GitHub.

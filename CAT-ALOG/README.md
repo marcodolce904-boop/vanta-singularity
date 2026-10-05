@@ -238,5 +238,5 @@ L'anteprima è una pagina isolata. Per far funzionare i componenti come sul sito
 - **Anteprime**: iframe isolato (senza accesso all'app né ai tuoi file).
 - **File**: nomi e percorsi validati (nessuna uscita dalla cartella dei dati), scritture atomiche, ripristino ZIP con controllo dei percorsi e limiti di dimensione contro le «bombe» ZIP.
 - **Dipendenze**: `npm audit` senza vulnerabilità.
-- **Aggiornamenti**: scaricati da GitHub Releases con controllo dell'impronta (sha512). L'installer **non è firmato**: chi controlla l'account GitHub controlla gli aggiornamenti, quindi **attiva la verifica in due passaggi** su GitHub.
+- **Aggiornamenti**: solo locali (`AGGIORNA.bat` con Git), nessun collegamento automatico a internet. Il repository può essere privato.
 - **Limite noto**: la finestra principale non ha una Content-Security-Policy, perché le anteprime (che eseguono il JavaScript dei componenti) ne erediterebbero le regole e smetterebbero di funzionare.
