@@ -45,8 +45,12 @@
       "buildResources": "build"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CAT-ALOG",
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true
     }

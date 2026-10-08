@@ -84,3 +84,14 @@ L'app non si collega a internet per aggiornarsi. Il codice nuovo arriva sul tuo 
 4. Per avere un'app con icona e installer sul tuo PC: apri un terminale nella cartella e scrivi `npm run dist:win`. L'installer `CAT-ALOG-Setup-….exe` esce nella cartella `dist`. Va rifatto a ogni aggiornamento.
 5. I tuoi dati (`Documenti\Catalogo MD`) non vengono toccati. Le voci nuove della libreria arrivano da sole all'avvio.
 6. Il repository GitHub serve solo a far arrivare il codice al tuo PC: può essere **privato** (nelle impostazioni del repository: Change visibility). Se `git pull` chiede l'accesso, accedi con il tuo account GitHub.
+
+
+## Creare l'installer .exe (una volta)
+
+1. Installa **Node.js** (LTS) da https://nodejs.org, se non l'hai già fatto.
+2. Doppio clic su **`CREA-INSTALLER.bat`** nella cartella `CAT-ALOG`. Fa tre cose: installa i componenti, esegue i controlli, crea l'installer (circa 5 minuti la prima volta).
+3. Si apre la cartella `dist`: dentro c'è **`CAT-ALOG-Setup-1.0.0.exe`**. È il file da installare e da dare a chi vuoi.
+4. Doppio clic sull'`.exe`: scegli la cartella e installa. Compaiono il collegamento sul Desktop e nel menu Start.
+5. Windows può mostrare «PC protetto»: clicca **Ulteriori informazioni → Esegui comunque**. Succede perché l'installer non ha una firma a pagamento; per l'uso personale è normale.
+6. I tuoi dati (`Documenti\Catalogo MD`) restano al loro posto anche se disinstalli o reinstalli.
+7. Per un'altra versione dopo gli aggiornamenti: cambia il numero `version` in `package.json` e rilancia `CREA-INSTALLER.bat`.
