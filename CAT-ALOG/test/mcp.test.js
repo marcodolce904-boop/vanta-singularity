@@ -109,10 +109,22 @@ test('collegamento a Claude Desktop: unisce al file esistente, copia di sicurezz
   install({ config: file, serverJs: server, nodePath: 'node' });
   assert.equal(Object.keys(JSON.parse(fs.readFileSync(file, 'utf8')).mcpServers).length, 2);
 
-  /* JSON rotto: errore chiaro e file intatto */
+  /* due blocchi attaccati (blocco incollato dopo la fine del file): vengono uniti */
+  fs.writeFileSync(file, '{\n  "theme": "dark",\n  "mcpServers": { "altro": { "command": "x" } }\n}\n{\n  "mcpServers": { "vecchio": { "command": "y" } }\n}\n');
+  const rr = install({ config: file, serverJs: server, nodePath: 'node' });
+  assert.equal(rr[0].riparato, true);
+  const jr = JSON.parse(fs.readFileSync(file, 'utf8'));
+  assert.equal(jr.theme, 'dark');
+  assert.deepEqual(Object.keys(jr.mcpServers).sort(), ['altro', 'cat-alog', 'vecchio']);
+  assert.match(fs.readFileSync(rr[0].copia, 'utf8'), /"vecchio"/, 'la copia ha il file com\'era');
+
+  /* JSON davvero rotto: errore chiaro e file intatto; con forza si riparte da zero (copia fatta) */
   fs.writeFileSync(file, '{ "mcpServers": { ');
-  assert.throws(() => install({ config: file, serverJs: server, nodePath: 'node' }), /non è un JSON valido/);
+  assert.throws(() => install({ config: file, serverJs: server, nodePath: 'node' }), (e) => e.irreparabile === true && /non è un JSON valido/.test(e.message));
   assert.equal(fs.readFileSync(file, 'utf8'), '{ "mcpServers": { ');
+  const rf = install({ config: file, serverJs: server, nodePath: 'node', forza: true });
+  assert.equal(rf[0].ripartito, true);
+  assert.equal(fs.readFileSync(rf[0].copia, 'utf8'), '{ "mcpServers": { ');
 
   /* file vuoto */
   fs.writeFileSync(file, '');

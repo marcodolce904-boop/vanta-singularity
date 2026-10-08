@@ -11,5 +11,10 @@ node -e "require('./mcp/server.js')" || (echo Il connettore non parte. Copia l'e
 echo OK.
 echo.
 node mcp\installa-desktop.js
+if %errorlevel%==2 (
+  echo.
+  echo Il file di Claude Desktop e' rovinato e non si riesce a ripararlo: ne scrivo uno nuovo ^(il vecchio resta come copia di sicurezza^)...
+  node mcp\installa-desktop.js --forza
+)
 echo.
 pause
