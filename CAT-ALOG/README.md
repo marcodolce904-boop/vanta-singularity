@@ -240,3 +240,7 @@ L'anteprima è una pagina isolata. Per far funzionare i componenti come sul sito
 - **Dipendenze**: `npm audit` senza vulnerabilità.
 - **Aggiornamenti**: solo locali (`AGGIORNA.bat` con Git), nessun collegamento automatico a internet. Il repository può essere privato.
 - **Limite noto**: la finestra principale non ha una Content-Security-Policy, perché le anteprime (che eseguono il JavaScript dei componenti) ne erediterebbero le regole e smetterebbero di funzionare.
+
+## Connettore per Claude e estensione per VS Code
+
+Vedi `CONNETTORI.md`: `COLLEGA-CLAUDE.bat` collega Claude (strumenti per leggere/scrivere il catalogo), `COLLEGA-VSCODE.bat` installa l'estensione con elenco, apertura file e anteprima dal vivo.

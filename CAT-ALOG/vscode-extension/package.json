@@ -1,0 +1,50 @@
+{
+  "name": "cat-alog-vscode",
+  "displayName": "CAT-ALOG",
+  "description": "Il catalogo di CAT-ALOG dentro VS Code: sfoglia strutture, componenti, animazioni e interazioni, modificali come file e vedi l'anteprima dal vivo.",
+  "version": "1.0.0",
+  "publisher": "cat-alog",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": ["onView:catAlogItems", "onCommand:catAlog.saveCurrent"],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [{ "id": "catAlog", "title": "CAT-ALOG", "icon": "resources/cat.svg" }]
+    },
+    "views": {
+      "catAlog": [{ "id": "catAlogItems", "name": "Catalogo" }]
+    },
+    "commands": [
+      { "command": "catAlog.refresh", "title": "CAT-ALOG: Aggiorna l'elenco", "icon": "$(refresh)" },
+      { "command": "catAlog.open", "title": "CAT-ALOG: Apri i file dell'elemento" },
+      { "command": "catAlog.preview", "title": "CAT-ALOG: Anteprima dal vivo" },
+      { "command": "catAlog.saveCurrent", "title": "CAT-ALOG: Salva il file aperto come elemento del catalogo" },
+      { "command": "catAlog.chooseFolder", "title": "CAT-ALOG: Scegli la cartella dell'app o dei dati" }
+    ],
+    "menus": {
+      "view/title": [{ "command": "catAlog.refresh", "when": "view == catAlogItems", "group": "navigation" }],
+      "view/item/context": [
+        { "command": "catAlog.open", "when": "view == catAlogItems && viewItem == item", "group": "inline" },
+        { "command": "catAlog.preview", "when": "view == catAlogItems && viewItem == item", "group": "inline" }
+      ]
+    },
+    "configuration": {
+      "title": "CAT-ALOG",
+      "properties": {
+        "catAlog.appPath": {
+          "type": "string",
+          "default": "",
+          "description": "Cartella dell'app CAT-ALOG (quella con lib/store.js). Se vuota, la cerca nella cartella aperta."
+        },
+        "catAlog.dataDir": {
+          "type": "string",
+          "default": "",
+          "description": "Cartella dei dati (Catalogo MD). Se vuota, usa quella scelta nell'app."
+        }
+      }
+    }
+  }
+}
