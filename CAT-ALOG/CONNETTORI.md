@@ -10,7 +10,14 @@ VS Code ──► estensione "CAT-ALOG"   ──────────┼─�
 
 ## 1. Connettore per Claude (`mcp/server.js`)
 
-**Installazione (2 minuti):** doppio clic su **`COLLEGA-CLAUDE.bat`**. Collega Claude Code in automatico, e per Claude Desktop ti mostra (e salva in `mcp\claude-desktop.json`) il blocco da incollare in Impostazioni → Sviluppatore → Modifica configurazione. Riavvia Claude.
+**Installazione, la via facile (2 minuti):**
+- **Claude Desktop:** doppio clic su **`COLLEGA-CLAUDE-DESKTOP.bat`**. Trova da solo il file di configurazione, ne fa una copia di sicurezza e aggiunge il connettore senza toccare il resto. Poi chiudi Claude Desktop **del tutto** (icona vicino all'orologio → tasto destro → Esci) e riaprilo.
+- **Claude Code:** doppio clic su **`COLLEGA-CLAUDE.bat`**.
+
+**Se non compare "cat-alog":**
+1. Hai chiuso Claude Desktop del tutto e riaperto? (la sola X della finestra non basta)
+2. Apri il file di log: `%APPDATA%\Claude\logs\mcp-server-cat-alog.log` (incollalo nella barra di Esplora file) e mandami le ultime righe.
+3. Rilancia `COLLEGA-CLAUDE-DESKTOP.bat`: se il file di configurazione era rovinato, lo script lo dice e non lo tocca.
 
 **Cosa può fare Claude** (strumenti `cat-alog`):
 

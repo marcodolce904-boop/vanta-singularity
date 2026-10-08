@@ -84,3 +84,40 @@ test('connettore MCP: strumenti veri via stdio su una cartella temporanea', asyn
   assert.equal(await rifiuta('salva_elemento', { kind: 'componenti', nome: 'x', html: 'a'.repeat(1024 * 1024 + 1) }), true, 'testo troppo grande');
   assert.equal((await call('catalogo_info')).isError, false);
 });
+
+test('collegamento a Claude Desktop: unisce al file esistente, copia di sicurezza, rifiuta JSON rotti', () => {
+  const { install, candidates } = require('../mcp/installa-desktop');
+  const dir = fs.mkdtempSync(path.join(process.env.TEST_TMPDIR || os.tmpdir(), 'catalogo-desk-'));
+  const file = path.join(dir, 'Claude', 'claude_desktop_config.json');
+  const server = path.join(__dirname, '..', 'mcp', 'server.js');
+
+  /* file che non esiste: viene creato */
+  const r1 = install({ config: file, serverJs: server, nodePath: 'C:\\Program Files\\nodejs\\node.exe' });
+  assert.equal(r1[0].creato, true);
+  const j1 = JSON.parse(fs.readFileSync(file, 'utf8'));
+  assert.deepEqual(j1.mcpServers['cat-alog'], { command: 'C:\\Program Files\\nodejs\\node.exe', args: [server] });
+
+  /* file con altre impostazioni e altri server: restano */
+  fs.writeFileSync(file, JSON.stringify({ theme: 'dark', mcpServers: { altro: { command: 'x', args: [] } } }));
+  const r2 = install({ config: file, serverJs: server, nodePath: 'node' });
+  assert.ok(r2[0].copia && fs.existsSync(r2[0].copia), 'copia di sicurezza');
+  const j2 = JSON.parse(fs.readFileSync(file, 'utf8'));
+  assert.equal(j2.theme, 'dark');
+  assert.ok(j2.mcpServers.altro && j2.mcpServers['cat-alog']);
+
+  /* rilancio: nessun doppione */
+  install({ config: file, serverJs: server, nodePath: 'node' });
+  assert.equal(Object.keys(JSON.parse(fs.readFileSync(file, 'utf8')).mcpServers).length, 2);
+
+  /* JSON rotto: errore chiaro e file intatto */
+  fs.writeFileSync(file, '{ "mcpServers": { ');
+  assert.throws(() => install({ config: file, serverJs: server, nodePath: 'node' }), /non è un JSON valido/);
+  assert.equal(fs.readFileSync(file, 'utf8'), '{ "mcpServers": { ');
+
+  /* file vuoto */
+  fs.writeFileSync(file, '');
+  install({ config: file, serverJs: server, nodePath: 'node' });
+  assert.ok(JSON.parse(fs.readFileSync(file, 'utf8')).mcpServers['cat-alog']);
+
+  assert.match(candidates({ platform: 'win32', env: { APPDATA: 'C:\\R', LOCALAPPDATA: dir }, home: 'C:\\U' })[0], /Claude/);
+});
