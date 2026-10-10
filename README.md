@@ -1,10 +1,12 @@
-# CAT-ALOG 🐱
+# CAT-ALOG 🐱  `BETA · EXPERIMENTAL`
+
+> ⚠️ **Beta / experimental test version.** CAT-ALOG is an early, experimental release made for testing. Features may change or break, some parts have not been tried on every setup, and bugs are expected. **Back up your catalog folder (`Documents\Catalogo MD`) regularly** and don't rely on it for critical work yet.
 
 **A personal, offline desktop catalog for web-design building blocks.** Keep your HTML/CSS/JS components, layouts, animations, interactions, CSS classes and `:root` design tokens in one place. Preview them live, copy them, export them, and reuse them in any project.
 
 > Windows desktop app (Electron). Everything stays on your computer: no account, no cloud, no network calls. The interface is in Italian.
 
-![status](https://img.shields.io/badge/platform-Windows-blue) ![offline](https://img.shields.io/badge/works-offline-green) ![tests](https://img.shields.io/badge/tests-146%20passing-brightgreen)
+![beta](https://img.shields.io/badge/status-BETA%20%C2%B7%20experimental-orange) ![status](https://img.shields.io/badge/platform-Windows-blue) ![offline](https://img.shields.io/badge/works-offline-green) ![tests](https://img.shields.io/badge/tests-146%20passing-brightgreen)
 
 ---
 
@@ -101,6 +103,8 @@ CAT-ALOG/
 - Known limits: the installer is unsigned (Windows SmartScreen shows a warning), and the main window has no Content-Security-Policy because previews execute the components' own JavaScript in isolated frames.
 
 ## Status
+
+**Beta, experimental test version.** Personal project, actively developed; expect rough edges. Not yet verified: the Windows installer on every machine, "Open in VS Code", PNG export, and backup/restore dialogs inside the real app window; the Claude connector and VS Code extension are new and lightly tested outside the automated tests. Feedback and bug reports are welcome.
 
 Personal project, actively developed. Developed with [Claude Code](https://claude.com/claude-code). All rights reserved; no open-source license has been chosen yet.
 

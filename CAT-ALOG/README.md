@@ -1,5 +1,7 @@
 # CAT-ALOG
 
+> ⚠️ **Versione BETA, di prova e sperimentale.** Possono esserci errori e cambiamenti; fai copie di sicurezza regolari della cartella dei dati (`Documenti\Catalogo MD`).
+
 App desktop personale (Electron) per tenere in un posto solo le tue **strutture flex**, i **componenti** (HTML, CSS, JS), le **classi** e le **variabili `:root`**: si modificano nell'app, si copiano con un clic, si esportano in cartelle vere da aprire in VS Code.
 
 ## Avvio su Windows
