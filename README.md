@@ -20,6 +20,15 @@ Front-end work means rebuilding the same things again and again: a navbar, an of
 
 Everything you save is stored as plain files (`markup.html`, `style.css`, `script.js`), so it works with Git, VS Code and any other editor.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Components](docs/screenshots/components-card.png) | ![CSS Grid playground](docs/screenshots/css-grid-playground.png) |
+| Components: live preview, editor, quality check | CSS Grid playground with live code |
+| ![Responsive preview](docs/screenshots/css-grid-responsive-preview.png) | ![Root tokens](docs/screenshots/root-tokens.png) |
+| Live responsive preview (375 px) | `:root` tokens with contrast checks |
+
 ## Who it is for
 
 - **Freelance web designers and front-end developers** who want their own reusable kit instead of hunting through old projects.
