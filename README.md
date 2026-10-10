@@ -69,7 +69,15 @@ Also: global search (`Ctrl+K`), backup and restore to ZIP, three themes (Cats, C
 
 Setup details: [`CAT-ALOG/CONNETTORI.md`](CAT-ALOG/CONNETTORI.md) (Italian).
 
-## Quick start (Windows)
+## Download (Windows installer, beta)
+
+A ready-made installer is published in **[Releases](https://github.com/marcodolce904-boop/CAT-ALOG-WEB-DESING-APP/releases/latest)**: download `CAT-ALOG-Setup-<version>.exe` and run it (choose the folder, desktop and Start-menu shortcuts are created).
+
+- The installer is **unsigned**: Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+- The installer contains the app only. The Claude connector and the VS Code extension are set up from the source folder (see below).
+- Releases are not rebuilt automatically any more: after new changes, build a fresh installer yourself with `CREA-INSTALLER.bat`.
+
+## Quick start from source (Windows)
 
 1. Install [Node.js](https://nodejs.org) (LTS).
 2. Download or clone this repository and open the `CAT-ALOG` folder.
